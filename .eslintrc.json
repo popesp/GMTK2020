@@ -1,0 +1,57 @@
+{
+	"env": {
+		"es6": true
+	},
+	"extends": "eslint:recommended",
+	"rules":
+	{
+		"array-bracket-newline": ["error", "consistent"],
+		"array-bracket-spacing": ["error", "never"],
+		"array-callback-return": ["error", {"allowImplicit": false, "checkForEach": true}],
+		"arrow-spacing": ["error", {"before": true, "after": true}],
+		"block-scoped-var": "error",
+		"brace-style": ["error", "allman", {"allowSingleLine": false}],
+		"comma-dangle": ["error", "never"],
+		"comma-spacing": ["error", {"before": false, "after": true}],
+		"comma-style": ["error", "last"],
+		"computed-property-spacing": ["error", "never"],
+		"consistent-return": ["error", {"treatUndefinedAsUnspecified": false}],
+		"default-case": "error",
+		"func-call-spacing": ["error", "never"],
+		"indent": ["error", "tab", {"SwitchCase": 1}],
+		"key-spacing": ["error", {"beforeColon": false, "afterColon": true, "mode": "strict"}],
+		"keyword-spacing": ["error", {"overrides": {
+			"if": {"after": false},
+			"for": {"after": false},
+			"while": {"after": false},
+			"switch": {"after": false},
+			"catch": {"after": false}
+		}}],
+		"linebreak-style": ["error", "unix"],
+		"no-console": "error",
+		"no-else-return": ["error", {"allowElseIf": true}],
+		"no-lonely-if": "error",
+		"no-multi-spaces": ["error", {"ignoreEOLComments": false}],
+		"no-return-assign": ["error", "except-parens"],
+		"no-self-assign": ["error", {"props": true}],
+		"no-self-compare": "error",
+		"no-trailing-spaces": ["error", {"skipBlankLines": false, "ignoreComments": false}],
+		"no-undef-init": "error",
+		"no-unneeded-ternary": ["error", {"defaultAssignment": false}],
+		"no-unused-expressions": "error",
+		"no-useless-escape": "error",
+		"no-var": "error",
+		"no-whitespace-before-property": "error",
+		"nonblock-statement-body-position": ["error", "below"],
+		"object-curly-newline": ["error", {"consistent": true}],
+		"object-curly-spacing": ["error", "never"],
+		"prefer-const": ["error", {"destructuring": "any", "ignoreReadBeforeAssign": false}],
+		"quotes": ["error", "double", {"avoidEscape": false, "allowTemplateLiterals": true}],
+		"semi": ["error", "always", {"omitLastInOneLineBlock": false}],
+		"semi-spacing": ["error", {"before": false, "after": true}],
+		"semi-style": ["error", "last"],
+		"space-before-function-paren": ["error", "never"],
+		"space-in-parens": ["error", "never"],
+		"vars-on-top": "error"
+	}
+}
