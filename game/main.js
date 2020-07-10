@@ -6,6 +6,11 @@ document.addEventListener('DOMContentLoaded', function()
 {
 	const dom_container = document.getElementById('container');
 
+	// 0: left, 1: right
+	const gamestate = {
+		direction_dummy: 0
+	};
+
 	const game = new Phaser.Game({
 		type: Phaser.AUTO,
 		title: 'GMTK 2020',
@@ -14,10 +19,7 @@ document.addEventListener('DOMContentLoaded', function()
 		height: HEIGHT_CANVAS/2,
 		resolution: 5,
 		physics: {
-			default: 'arcade',
-			arcade: {
-				gravity: {y: 200}
-			}
+			default: 'arcade'
 		},
 		scene: {
 			preload: function()
@@ -30,10 +32,6 @@ document.addEventListener('DOMContentLoaded', function()
 			},
 			create: function()
 			{
-				// initialize
-				this.add.tileSprite(0, 16, 16, 16, 'atlas', 'wall');
-				this.add.tileSprite(0, 0, 16, 16, 'atlas', 'wall_top');
-
 				// render level
 				const level = this.cache.json.get('level1');
 				for(let index_row = 0; index_row < level.tiles.length; ++index_row)
@@ -45,31 +43,71 @@ document.addEventListener('DOMContentLoaded', function()
 						const tile = row[index_col];
 
 						if(tile)
-							this.add.tileSprite(index_col*16, index_row*16, 16, 16, 'atlas', tile);
+							this.add.tileSprite(index_col*16, index_row*16, 16, 16, 'atlas', tile).setOrigin(0, 0);
 					}
 				}
 
-				const config_dummy = {
-					key: 'elf_f_idle',
+				// characters
+				this.anims.create({
+					key: 'dummy_idle',
+					frames: this.anims.generateFrameNumbers('tileset_animation', {start: 72, end: 75}),
+					frameRate: 8,
+					repeat: -1
+				});
+				this.anims.create({
+					key: 'dummy_run',
+					frames: this.anims.generateFrameNumbers('tileset_animation', {start: 76, end: 79}),
+					frameRate: 8,
+					repeat: -1
+				});
+				gamestate.dummy = this.physics.add.sprite(200, 150, 'dummy').play('dummy_run');
+
+				this.anims.create({
+					key: 'damsel',
 					frames: this.anims.generateFrameNumbers('tileset_animation', {start: 8, end: 11}),
 					frameRate: 8,
 					repeat: -1
-				};
-				this.anims.create(config_dummy);
-				this.add.sprite(200, 150, 'elf_f').play('elf_f_idle');
+				});
+				this.add.sprite(232, 150, 'damsel').play('damsel');
 
-				const config_damsel = {
-					key: 'elf_m_idle',
-					frames: this.anims.generateFrameNumbers('tileset_animation', {start: 40, end: 43}),
-					frameRate: 8,
-					repeat: -1
-				};
-				this.anims.create(config_damsel);
-				this.add.sprite(232, 150, 'elf_m').play('elf_m_idle');
+
+				// keyboard controls
+				gamestate.cursors = this.input.keyboard.createCursorKeys();
 			},
 			update: function()
 			{
-				// tick
+				if(gamestate.cursors.left.isDown)
+				{
+					gamestate.direction_dummy = 0;
+					gamestate.dummy.setX(gamestate.dummy.getX() - 1);
+					gamestate.dummy.anims.play('dummy_run', true);
+				}
+				else if(gamestate.cursors.right.isDown)
+				{
+					gamestate.direction_dummy = 1;
+					gamestate.dummy.setVelocityX(64);
+					gamestate.dummy.anims.play('dummy_run', true);
+				}
+				else
+				{
+					gamestate.dummy.setVelocityX(0);
+					gamestate.dummy.anims.play('dummy_idle', true);
+				}
+
+				if(gamestate.cursors.up.isDown)
+				{
+					gamestate.dummy.setVelocityY(-64);
+					gamestate.dummy.anims.play('dummy_run', true);
+				}
+				else if(gamestate.cursors.down.isDown)
+				{
+					gamestate.dummy.setVelocityY(64);
+					gamestate.dummy.anims.play('dummy_run', true);
+				}
+				else
+					gamestate.dummy.setVelocityY(0);
+
+				gamestate.dummy.setFlipX(gamestate.direction_dummy === 0);
 			}
 		}
 	});

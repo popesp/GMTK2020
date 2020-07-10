@@ -1,15 +1,15 @@
 {
 	"name": "Level 1",
 	"tiles": [
-		["floor1", "floor1", null, null, null, "floor1", "floor1", "floor1", "floor1", null],
-		["floor1", "floor1", "floor1", "floor1", null, "floor1", "floor1", "floor1", "floor1", null],
-		["floor1", "floor1", "floor1", "floor1", "floor1", "floor1", null, "floor1", "floor1", "floor1"],
-		[null, "floor1", "floor1", null, "floor1", "floor1", null, "floor1", "floor1", null],
-		[null, "floor1", null, null, null, "floor1", "floor1", "floor1", "floor1", null],
-		[null, null, null, null, null, "floor1", "floor1", "floor1", "floor1", null],
+		["floor1", "floor1", "wall_left", "wall_middle", "wall_right", "floor1", "floor1", "floor1", "floor1", null],
+		["floor1", "floor1", "floor1", "floor1", "pit", "floor1", "floor1", "floor1", "floor1", null],
+		["floor1", "floor1", "floor1", "floor1", "floor1", "floor1", "pit", "floor1", "floor1", "floor1"],
+		["pit", "floor1", "floor1", "pit", "floor1", "floor1", null, "floor1", "floor1", "pit"],
+		[null, "floor1", "pit", null, "pit", "floor1", "floor1", "floor1", "floor1", null],
+		[null, "pit", null, null, null, "floor1", "floor1", "floor1", "floor1", null],
 		[null, null, null, null, null, "floor1", "floor1", "floor1", "floor1", null],
 		[null, null, null, null, "floor1", "floor1", "floor1", "floor1", "floor1", null],
-		[null, "floor1", "floor1", "floor1", "floor1", "floor1", "floor1", "floor1", null, null],
-		["floor1", "floor1", null, null, null, "floor1", "floor1", "floor1", null, null]
+		[null, "floor1", "floor1", "floor1", "floor1", "floor1", "floor1", "floor1", "pit", null],
+		["floor1", "floor1", "pit", "pit", "pit", "floor1", "floor1", "floor1", null, null]
 	]
 }
