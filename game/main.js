@@ -23,10 +23,10 @@ document.addEventListener('DOMContentLoaded', function()
 			preload: function()
 			{
 				// load assets
-				this.load.spritesheet('tileset_animation', 'assets/tileset.png', {frameWidth: 16, frameHeight: 32}
-				);
-
+				this.load.spritesheet('tileset_animation', 'assets/tileset.png', {frameWidth: 16, frameHeight: 32});
 				this.load.atlas('atlas', 'assets/tileset.png', 'assets/tileset.json');
+
+				this.load.json('level1', 'assets/levels/level1.json');
 			},
 			create: function()
 			{
@@ -34,6 +34,20 @@ document.addEventListener('DOMContentLoaded', function()
 				this.add.tileSprite(0, 16, 16, 16, 'atlas', 'wall');
 				this.add.tileSprite(0, 0, 16, 16, 'atlas', 'wall_top');
 
+				// render level
+				const level = this.cache.json.get('level1');
+				for(let index_row = 0; index_row < level.tiles.length; ++index_row)
+				{
+					const row = level.tiles[index_row];
+
+					for(let index_col = 0; index_col < row.length; ++index_col)
+					{
+						const tile = row[index_col];
+
+						if(tile)
+							this.add.tileSprite(index_col*16, index_row*16, 16, 16, 'atlas', tile);
+					}
+				}
 
 				const config_dummy = {
 					key: 'elf_f_idle',

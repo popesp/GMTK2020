@@ -1,0 +1,15 @@
+{
+	"name": "Level 1",
+	"tiles": [
+		["floor1", "floor1", null, null, null, "floor1", "floor1", "floor1", "floor1", null],
+		["floor1", "floor1", "floor1", "floor1", null, "floor1", "floor1", "floor1", "floor1", null],
+		["floor1", "floor1", "floor1", "floor1", "floor1", "floor1", null, "floor1", "floor1", "floor1"],
+		[null, "floor1", "floor1", null, "floor1", "floor1", null, "floor1", "floor1", null],
+		[null, "floor1", null, null, null, "floor1", "floor1", "floor1", "floor1", null],
+		[null, null, null, null, null, "floor1", "floor1", "floor1", "floor1", null],
+		[null, null, null, null, null, "floor1", "floor1", "floor1", "floor1", null],
+		[null, null, null, null, "floor1", "floor1", "floor1", "floor1", "floor1", null],
+		[null, "floor1", "floor1", "floor1", "floor1", "floor1", "floor1", "floor1", null, null],
+		["floor1", "floor1", null, null, null, "floor1", "floor1", "floor1", null, null]
+	]
+}
