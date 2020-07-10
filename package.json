@@ -2,7 +2,7 @@
 	"name": "gmtk",
 	"version": "0.0.1",
 	"scripts": {
-		"start": "node server/webserver.js",
+		"start": "nodemon server/webserver.js",
 		"bundle": "sh scripts/bundle.sh"
 	},
 	"devDependencies": {
