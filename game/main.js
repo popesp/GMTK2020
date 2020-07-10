@@ -30,11 +30,35 @@ document.addEventListener('DOMContentLoaded', function()
 			},
 			create: function()
 			{
-				// initialize
-				this.add.tileSprite(0, 16, 16, 16, 'atlas', 'wall');
-				this.add.tileSprite(0, 0, 16, 16, 'atlas', 'wall_top');
+				// walls
+				this.add.tileSprite(0, 0, 16, 16, 'atlas', 'wall_top_left');
+				this.add.tileSprite(16, 0, 16, 16, 'atlas', 'wall_top_middle');
+				this.add.tileSprite(32, 0, 16, 16, 'atlas', 'wall_top_right');
+				this.add.tileSprite(0, 16, 16, 16, 'atlas', 'wall_left');
+				this.add.tileSprite(16, 16, 16, 16, 'atlas', 'wall_middle');
+				this.add.tileSprite(32, 16, 16, 16, 'atlas', 'wall_right');
+
+				// wall variants
+				this.add.tileSprite(0, 32, 16, 16, 'atlas', 'wall_top_left');
+				this.add.tileSprite(16, 32, 16, 16, 'atlas', 'wall_top_middle');
+				this.add.tileSprite(32, 32, 16, 16, 'atlas', 'wall_top_right');
+				this.add.tileSprite(0, 48, 16, 16, 'atlas', 'wall_variant1');
+				this.add.tileSprite(16, 48, 16, 16, 'atlas', 'wall_variant2');
+				this.add.tileSprite(32, 48, 16, 16, 'atlas', 'wall_variant3');
+
+				// features
+				this.add.tileSprite(48, 0, 16, 16, 'atlas', 'feature_top1');
+				this.add.tileSprite(64, 0, 16, 16, 'atlas', 'feature_top2');
+				this.add.tileSprite(80, 0, 16, 16, 'atlas', 'feature_top3');
+				this.add.tileSprite(48, 16, 16, 16, 'atlas', 'feature_lava_mid1');
+				this.add.tileSprite(64, 16, 16, 16, 'atlas', 'feature_lava_mid2');
+				this.add.tileSprite(80, 16, 16, 16, 'atlas', 'feature_lava_mid3');
+				this.add.tileSprite(48, 32, 16, 16, 'atlas', 'feature_lava_base1');
+				this.add.tileSprite(64, 32, 16, 16, 'atlas', 'feature_lava_base2');
+				this.add.tileSprite(80, 32, 16, 16, 'atlas', 'feature_lava_base3');
 
 
+				// characters
 				const config_dummy = {
 					key: 'elf_f_idle',
 					frames: this.anims.generateFrameNumbers('tileset_animation', {start: 8, end: 11}),
