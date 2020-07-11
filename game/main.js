@@ -43,7 +43,14 @@ function makegraph(level, tilegroups)
 	{
 		return row.map(function(tile, index_col)
 		{
-			if(tilegroups[tile] === 'below')
+			if(tile === 'floor_ladder')
+				return {
+					win: true,
+					index_row,
+					index_col,
+					paths: []
+				};
+			else if(tilegroups[tile] === 'below')
 				return {
 					index_row,
 					index_col,
@@ -230,7 +237,8 @@ document.addEventListener('DOMContentLoaded', function()
 		// normalized tile units per frame
 		dummy_speed: 0.03,
 		// 0 - bored , 1 - scared, 2 - brave
-		dummy_mood: 0
+		dummy_mood: 0,
+		win: false
 	};
 
 	const game_scene = new Phaser.Class({
@@ -403,12 +411,28 @@ document.addEventListener('DOMContentLoaded', function()
 					sprite.setPipeline('Light2D');
 				}
 			}
-
-			// this.physics.add.collider(state.dummy, staticgroups.walls);
+			// 9 - 2
+			state.actionqueue.push({
+				type: 'move',
+				node_destination: state.graph[2][9],
+				index_path: 0,
+				progress_path: 0,
+				path: null
+			});
+			this.physics.add.collider(state.dummy, staticgroups.walls);
 		},
 
 		update: function()
 		{
+			if(state.node_current.win)
+			{
+				if(!state.win)
+				{
+					state.win = true;
+					this.add.text(120, 30, 'You Win POGGERS', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
+				}
+				return;
+			}
 			const action = state.action_current;
 
 			// if idle, perform next action when applicable
