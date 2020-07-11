@@ -7,6 +7,9 @@ const SPEED_DUMMY = 0.03;
 const XOFFSET_LEVEL = 32;
 const YOFFSET_LEVEL = 32;
 
+const WIDTH_TILE = 16;
+const HEIGHT_TILE = 16;
+
 
 const tilegroups = {
 	null: 'walls',
@@ -143,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function()
 	};
 
 	const game = new Phaser.Game({
-		type: Phaser.AUTO,
+		type: Phaser.WEBGL,
 		title: 'GMTK 2020',
 		parent: dom_container,
 		width: WIDTH_CANVAS/2,
@@ -160,8 +163,8 @@ document.addEventListener('DOMContentLoaded', function()
 			preload: function()
 			{
 				// load assets
-				this.load.spritesheet('tileset_animation', 'assets/tileset.png', {frameWidth: 16, frameHeight: 32});
-				this.load.atlas('atlas', 'assets/tileset.png', 'assets/tileset.json');
+				this.load.spritesheet('tileset_animation', ['assets/tileset.png', 'assets/normal.png'], {frameWidth: 16, frameHeight: 32});
+				this.load.atlas('atlas', ['assets/tileset.png', 'assets/normal.png'], 'assets/tileset.json');
 
 				this.load.json('level1', 'assets/levels/level1.json');
 			},
@@ -183,15 +186,19 @@ document.addEventListener('DOMContentLoaded', function()
 
 						const tilegroup = tilegroups[tile];
 
-						const x = XOFFSET_LEVEL + index_col*16;
-						const y = YOFFSET_LEVEL + index_row*16;
+						const x = XOFFSET_LEVEL + index_col*WIDTH_TILE;
+						const y = YOFFSET_LEVEL + index_row*HEIGHT_TILE;
 
+						const sprite = this.add.sprite(x, y, 'atlas', tile).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
 						if(staticgroups[tilegroup])
-							staticgroups[tilegroup].create(x, y, 'atlas', tile).setDisplaySize(16, 16).refreshBody();
-						else
-							this.add.sprite(x, y, 'atlas', tile).setDisplaySize(16, 16);
+							staticgroups[tilegroup].add(sprite);
+
+						sprite.setPipeline('Light2D');
 					}
 				}
+
+				this.lights.enable().setAmbientColor(0x333333);
+				this.lights.addLight(0, 0, 200).setColor(0xffffff).setIntensity(2);
 
 				const graph = makegraph(level, tilegroups);
 
@@ -226,7 +233,8 @@ document.addEventListener('DOMContentLoaded', function()
 					frameRate: 8,
 					repeat: -1
 				});
-				state.dummy = this.physics.add.sprite(XOFFSET_LEVEL + node_spawn.index_col*16, YOFFSET_LEVEL + node_spawn.index_row*16, 'tileset_animation').setOrigin(0.5, 1).play('dummy_run');
+				state.dummy = this.physics.add.sprite(XOFFSET_LEVEL + node_spawn.index_col*WIDTH_TILE, YOFFSET_LEVEL + node_spawn.index_row*HEIGHT_TILE, 'tileset_animation').setDisplayOrigin(8, 28).play('dummy_run');
+				state.dummy.setPipeline('Light2D');
 				state.dummy.body.setSize(12, 12).setOffset(2, 20);
 
 				this.anims.create({
@@ -235,10 +243,11 @@ document.addEventListener('DOMContentLoaded', function()
 					frameRate: 8,
 					repeat: -1
 				});
-				this.add.sprite(232, 150, 'tileset_animation').setOrigin(0.5, 1).play('damsel');
+				const damsel = this.add.sprite(232, 150, 'tileset_animation').setDisplayOrigin(8, 28).play('damsel');
+				damsel.setPipeline('Light2D');
 
 
-				this.physics.add.collider(state.dummy, staticgroups.walls);
+				// this.physics.add.collider(state.dummy, staticgroups.walls);
 
 
 				// keyboard controls
@@ -264,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function()
 							{
 								const node_end = action.path[action.index_path];
 
-								state.dummy.setPosition(XOFFSET_LEVEL + 16*node_end.index_col, YOFFSET_LEVEL + 16*node_end.index_row);
+								state.dummy.setPosition(XOFFSET_LEVEL + WIDTH_TILE*node_end.index_col, YOFFSET_LEVEL + HEIGHT_TILE*node_end.index_row);
 								state.node_current = node_end;
 								state.action_current = null;
 							}
@@ -282,8 +291,8 @@ document.addEventListener('DOMContentLoaded', function()
 
 							state.node_current = action.progress_path < 0.5 ? node_from : node_to;
 
-							const x = Math.floor(XOFFSET_LEVEL + 16*(node_from.index_col*(1 - action.progress_path) + node_to.index_col*action.progress_path));
-							const y = Math.floor(YOFFSET_LEVEL + 16*(node_from.index_row*(1 - action.progress_path) + node_to.index_row*action.progress_path));
+							const x = Math.floor(XOFFSET_LEVEL + WIDTH_TILE*(node_from.index_col*(1 - action.progress_path) + node_to.index_col*action.progress_path));
+							const y = Math.floor(YOFFSET_LEVEL + HEIGHT_TILE*(node_from.index_row*(1 - action.progress_path) + node_to.index_row*action.progress_path));
 
 							state.dummy.setPosition(x, y);
 						}
