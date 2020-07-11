@@ -45,7 +45,14 @@ function makegraph(level, tilegroups)
 	{
 		return row.map(function(tile, index_col)
 		{
-			if(tilegroups[tile] === 'below')
+			if(tile === 'floor_ladder')
+				return {
+					win: true,
+					index_row,
+					index_col,
+					paths: []
+				};
+			else if(tilegroups[tile] === 'below')
 				return {
 					index_row,
 					index_col,
@@ -232,7 +239,8 @@ document.addEventListener('DOMContentLoaded', function()
 		// normalized tile units per frame
 		dummy_speed: 0.03,
 		// 0 - bored , 1 - scared, 2 - brave
-		dummy_mood: 0
+		dummy_mood: 0,
+		win: false
 	};
 
 	const game_scene = new Phaser.Class({
@@ -245,6 +253,7 @@ document.addEventListener('DOMContentLoaded', function()
 		preload: function()
 		{
 			// load assets
+			// phaser is bad so we need to do this, and by need I mean I don't know how to do it in phaser
 			this.load.atlas('atlas', ['assets/tileset.png', 'assets/normal.png'], 'assets/tileset.json');
 			this.load.json('level0', 'assets/levels/level0.json');
 			this.load.json('level1', 'assets/levels/level1.json');
@@ -346,26 +355,32 @@ document.addEventListener('DOMContentLoaded', function()
 					sprite.setInteractive({
 						useHandCursor: true
 					});
-					sprite.on('pointerdown', function(pointer)
+					sprite.on('pointerdown', function()
 					{
 						this.setTint(0xff0000);
 					});
-					sprite.on('pointerup', function(pointer)
+					sprite.on('pointerup', function()
 					{
-						if(sconce.intensity === 0)
+						if(sconce.intensity === 0 && state.ux_stored_light.available > 0)
 						{
 							sconce.setIntensity(2);
 							this.anims.remove('sconce_unlit');
 							this.anims.play('sconce_lit');
+
+							state.ux_stored_light.sprites[--state.ux_stored_light.available].anims.remove('sconce_lit');
+							state.ux_stored_light.sprites[state.ux_stored_light.available].anims.play('sconce_unlit');
 						}
-						else
+						else if(sconce.intensity !== 0 && state.ux_stored_light.available < 3)
 						{
 							sconce.setIntensity(0);
 							this.anims.remove('sconce_lit');
 							this.anims.play('sconce_unlit');
+
+							state.ux_stored_light.sprites[state.ux_stored_light.available].anims.play('sconce_lit');
+							state.ux_stored_light.sprites[state.ux_stored_light.available++].anims.remove('sconce_unlit');
 						}
 					});
-					sprite.on('pointerout', function(pointer)
+					sprite.on('pointerout', function()
 					{
 						this.clearTint();
 					});
@@ -399,12 +414,28 @@ document.addEventListener('DOMContentLoaded', function()
 					sprite.setPipeline('Light2D');
 				}
 			}
-
-			// this.physics.add.collider(state.dummy, staticgroups.walls);
+			// 9 - 2
+			state.actionqueue.push({
+				type: 'move',
+				node_destination: state.graph[2][9],
+				index_path: 0,
+				progress_path: 0,
+				path: null
+			});
+			this.physics.add.collider(state.dummy, staticgroups.walls);
 		},
 
 		update: function()
 		{
+			if(state.node_current.win)
+			{
+				if(!state.win)
+				{
+					state.win = true;
+					this.add.text(120, 30, 'You Win POGGERS', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
+				}
+				return;
+			}
 			const action = state.action_current;
 
 			// if idle, perform next action when applicable
@@ -478,6 +509,7 @@ document.addEventListener('DOMContentLoaded', function()
 		preload: function()
 		{
 			this.load.atlas('atlas_ux', 'assets/ux.png', 'assets/ux.json');
+			this.load.atlas('atlas', ['assets/tileset.png', 'assets/normal.png'], 'assets/tileset.json');
 		},
 		create: function()
 		{
@@ -486,19 +518,14 @@ document.addEventListener('DOMContentLoaded', function()
 			this.add.sprite(36, 0, 'atlas_ux', 'ux_heart_half').setOrigin(0, 0);
 			this.add.sprite(72, 0, 'atlas_ux', 'ux_heart_empty').setOrigin(0, 0);
 
-			// const snuff_out = this.add.sprite(304, 0, 'atlas_ux', 'ux_snuff_out').setOrigin(0, 0);
-			// snuff_out.setInteractive({
-			// 	useHandCursor: true
-			// });
-			// snuff_out.on('pointerdown', function(pointer)
-			// {
-			// 	this.setTint(0xff0000);
-			// });
-
-			// snuff_out.on('pointerout', function(pointer)
-			// {
-			// 	this.clearTint();
-			// });
+			state.ux_stored_light = {
+				sprites: [
+					this.add.sprite(184, 10, 'atlas', 'sconce_unlit'),
+					this.add.sprite(205, 10, 'atlas', 'sconce_unlit'),
+					this.add.sprite(226, 10, 'atlas', 'sconce_unlit')
+				],
+				available: 0
+			};
 
 			state.dummy_mood_text = this.add.text(125, 0, '', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
 			this.add.text(250, 0, 'Upper Dungeon - 1', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
