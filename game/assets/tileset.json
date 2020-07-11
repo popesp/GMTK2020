@@ -122,27 +122,27 @@
 		},
 		{
 			"filename": "feature_column_top_no_bg",
-			"frame": {"x": 80, "y": 96, "w": 16, "h": 16}
+			"frame": {"x": 80, "y": 80, "w": 16, "h": 16}
 		},
 		{
 			"filename": "feature_column_mid_no_bg",
-			"frame": {"x": 80, "y": 112, "w": 16, "h": 16}
+			"frame": {"x": 80, "y": 96, "w": 16, "h": 16}
 		},
 		{
 			"filename": "feature_column_base_no_bg",
-			"frame": {"x": 80, "y": 128, "w": 16, "h": 16}
+			"frame": {"x": 80, "y": 112, "w": 16, "h": 16}
 		},
 		{
 			"filename": "feature_column_top",
-			"frame": {"x": 96, "y": 96, "w": 16, "h": 16}
+			"frame": {"x": 96, "y": 80, "w": 16, "h": 16}
 		},
 		{
 			"filename": "feature_column_mid",
-			"frame": {"x": 96, "y": 112, "w": 16, "h": 16}
+			"frame": {"x": 96, "y": 96, "w": 16, "h": 16}
 		},
 		{
 			"filename": "feature_column_base",
-			"frame": {"x": 96, "y": 128, "w": 16, "h": 16}
+			"frame": {"x": 96, "y": 112, "w": 16, "h": 16}
 		},
 		{
 			"filename": "floor1",

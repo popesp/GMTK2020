@@ -21,8 +21,12 @@
 		[null, null, null, null, null, null, null, null, null, null, null],
 		["wall_inner_corner_l_top_left", null, "wall_inner_corner_l_top_right", null, "wall_inner_corner_mid_left", null, "wall_inner_corner_mid_right", null, "wall_inner_corner_t_top_left", null, "wall_inner_corner_t_top_right"],
 		[null, null, null, null, null, null, null, null, null, null, null],
-		[null, null, null, null, null, null, null, null, null, null, null],
-		[null, null, null, null, null, null, null, null, null, null, null]
+		[null, "wall_top_left", null, "wall_top_middle", null, "wall_top_right", null, null, null, null, null],
+		["wall_left", null, "wall_middle", null, "wall_right", null, null, null, null, null, null]
 	],
-	"objects": {}
+	"objects": [{"key": "sconce", "row": 0, "col": 0, "lit": true},
+		{"key": "sconce", "row": 8, "col": 0, "lit": true},
+		{"key": "sconce", "row": 5, "col": 5, "lit": true},
+		{"key": "sconce", "row": 0, "col": 8, "lit": true},
+		{"key": "sconce", "row": 8, "col": 9, "lit": true}]
 }

@@ -19,6 +19,7 @@ const tilegroups = {
 	'floor7': 'below',
 	'floor8': 'below',
 	'floor_ladder': 'below',
+	'feature_lava_base1': 'below',
 	'wall_left': 'walls',
 	'wall_middle': 'walls',
 	'wall_right': 'walls',
@@ -33,6 +34,7 @@ const tilegroups = {
 	'wall_side_mid_right': 'walls',
 	'wall_corner_bottom_left': 'walls',
 	'wall_corner_bottom_right': 'walls',
+	'feature_lava_mid1': 'walls',
 	'edge': 'walls'
 };
 
@@ -246,6 +248,7 @@ document.addEventListener('DOMContentLoaded', function()
 			this.load.atlas('atlas', ['assets/tileset.png', 'assets/normal.png'], 'assets/tileset.json');
 			this.load.json('level0', 'assets/levels/level0.json');
 			this.load.json('level1', 'assets/levels/level1.json');
+			this.load.json('level2', 'assets/levels/level2.json');
 		},
 
 		create: function()
