@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function()
 		physics: {
 			default: 'arcade',
 			arcade: {
-				debug: true,
+				// debug: true,
 				fps: 30
 			}
 		},
@@ -71,9 +71,9 @@ document.addEventListener('DOMContentLoaded', function()
 						const y = YOFFSET_LEVEL + index_row*16;
 
 						if(staticgroups[tilegroup])
-							staticgroups[tilegroup].create(x, y, tile ? 'atlas' : null, tile).setDisplaySize(16, 16).refreshBody();
+							staticgroups[tilegroup].create(x, y, 'atlas', tile).setDisplaySize(16, 16).refreshBody();
 						else
-							this.add.sprite(x, y, tile ? 'atlas' : null, tile).setDisplaySize(16, 16);
+							this.add.sprite(x, y, 'atlas', tile).setDisplaySize(16, 16);
 					}
 				}
 
