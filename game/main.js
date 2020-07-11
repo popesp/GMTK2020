@@ -18,9 +18,21 @@ const tilegroups = {
 	'floor6': 'below',
 	'floor7': 'below',
 	'floor8': 'below',
+	'floor_ladder': 'below',
 	'wall_left': 'walls',
 	'wall_middle': 'walls',
 	'wall_right': 'walls',
+	'wall_top_middle': 'walls',
+	'wall_variant1': 'walls',
+	'wall_variant2': 'walls',
+	'wall_variant3': 'walls',
+	'wall_variant4': 'walls',
+	'wall_variant5': 'walls',
+	'wall_variant6': 'walls',
+	'wall_side_mid_left': 'walls',
+	'wall_side_mid_right': 'walls',
+	'wall_corner_bottom_left': 'walls',
+	'wall_corner_bottom_right': 'walls',
 	'edge': 'walls'
 };
 
@@ -246,10 +258,12 @@ document.addEventListener('DOMContentLoaded', function()
 			for(let index_row = 0; index_row < level.tiles.length; ++index_row)
 			{
 				const row = level.tiles[index_row];
+				const row_overlay = level.tiles_top[index_row];
 
 				for(let index_col = 0; index_col < row.length; ++index_col)
 				{
 					const tile = row[index_col];
+					const tile_overlay = row_overlay[index_col];
 
 					const tilegroup = tilegroups[tile];
 
@@ -257,10 +271,12 @@ document.addEventListener('DOMContentLoaded', function()
 					const y = YOFFSET_LEVEL + index_row*HEIGHT_TILE;
 
 					const sprite = this.add.sprite(x, y, 'atlas', tile).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
+					const sprite_overlay = this.add.sprite(x, y, 'atlas', tile_overlay).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
 					if(staticgroups[tilegroup])
 						staticgroups[tilegroup].add(sprite);
 
 					sprite.setPipeline('Light2D');
+					sprite_overlay.setPipeline('Light2D');
 				}
 			}
 
