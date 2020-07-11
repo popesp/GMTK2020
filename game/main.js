@@ -14,6 +14,13 @@ const HEIGHT_TILE = 16;
 const tilegroups = {
 	null: 'walls',
 	'floor1': 'below',
+	'floor2': 'below',
+	'floor3': 'below',
+	'floor4': 'below',
+	'floor5': 'below',
+	'floor6': 'below',
+	'floor7': 'below',
+	'floor8': 'below',
 	'wall_left': 'walls',
 	'wall_middle': 'walls',
 	'wall_right': 'walls',
@@ -193,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function()
 
 			const graph = makegraph(level, tilegroups);
 
-			const node_spawn = graph[0][0];
+			const node_spawn = graph[3][2];
 			state.node_current = node_spawn;
 
 			state.actionqueue.push({
