@@ -129,9 +129,9 @@ function lightgraph(graph, sconces)
 				const dx = sconce.x - node.x;
 				const dy = sconce.y - node.y;
 
-				if(dx*dx + dy*dy < LIT_RADIUS*LIT_RADIUS)
+				if(dx*dx + dy*dy <= LIT_RADIUS*LIT_RADIUS)
 					node.lit = true;
-				if(dx*dx + dy*dy < DIM_RADIUS*DIM_RADIUS)
+				if(dx*dx + dy*dy <= DIM_RADIUS*DIM_RADIUS)
 					node.dim = true;
 			}
 		}
@@ -242,7 +242,7 @@ const mood_handler = {
 	calm: function(state)
 	{
 		// randomly decide to set a new destination when calm
-		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random()*240) < 1)
+		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random()*20) < 1)
 		{
 			let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
 			let distance = 1;
@@ -451,6 +451,11 @@ document.addEventListener('DOMContentLoaded', function()
 				frameRate: 12,
 				repeat: -1
 			});
+			this.anims.create({
+				key: 'dummy_fall',
+				frames: this.anims.generateFrameNames('atlas', {prefix: 'knight_fall', end: 5}),
+				frameRate: 8
+			});
 
 			// sconces
 			this.anims.create({
@@ -602,6 +607,7 @@ document.addEventListener('DOMContentLoaded', function()
 				if(!state.lose)
 				{
 					state.lose = true;
+					state.dummy.anims.play('dummy_fall');
 					this.add.text(120, 30, 'You Died Idiot kekw', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
 				}
 				return;
@@ -669,7 +675,8 @@ document.addEventListener('DOMContentLoaded', function()
 					state.changing_moods = false;
 				}
 			}
-			else
+
+			if(action === null)
 			{
 				state.dummy.anims.play(state.dummy_mood === 'scared' ? 'dummy_idle_scared' : 'dummy_idle', true);
 
