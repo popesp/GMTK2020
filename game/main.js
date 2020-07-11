@@ -21,9 +21,21 @@ const tilegroups = {
 	'floor6': 'below',
 	'floor7': 'below',
 	'floor8': 'below',
+	'floor_ladder': 'below',
 	'wall_left': 'walls',
 	'wall_middle': 'walls',
 	'wall_right': 'walls',
+	'wall_top_middle': 'walls',
+	'wall_variant1': 'walls',
+	'wall_variant2': 'walls',
+	'wall_variant3': 'walls',
+	'wall_variant4': 'walls',
+	'wall_variant5': 'walls',
+	'wall_variant6': 'walls',
+	'wall_side_mid_left': 'walls',
+	'wall_side_mid_right': 'walls',
+	'wall_corner_bottom_left': 'walls',
+	'wall_corner_bottom_right': 'walls',
 	'edge': 'walls'
 };
 
@@ -383,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function()
 		physics: {
 			default: 'arcade',
 			arcade: {
-				//debug: true,
+				// debug: true,
 				fps: 30
 			}
 		},
