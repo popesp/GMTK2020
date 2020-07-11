@@ -163,7 +163,6 @@ document.addEventListener('DOMContentLoaded', function()
 			preload: function()
 			{
 				// load assets
-				this.load.spritesheet('tileset_animation', ['assets/tileset.png', 'assets/normal.png'], {frameWidth: 16, frameHeight: 32});
 				this.load.atlas('atlas', ['assets/tileset.png', 'assets/normal.png'], 'assets/tileset.json');
 
 				this.load.json('level1', 'assets/levels/level1.json');
@@ -223,28 +222,28 @@ document.addEventListener('DOMContentLoaded', function()
 				// characters
 				this.anims.create({
 					key: 'dummy_idle',
-					frames: this.anims.generateFrameNumbers('tileset_animation', {start: 72, end: 75}),
+					frames: this.anims.generateFrameNames('atlas', {prefix: 'knight_idle', end: 4}),
 					frameRate: 6,
 					repeat: -1
 				});
 				this.anims.create({
 					key: 'dummy_run',
-					frames: this.anims.generateFrameNumbers('tileset_animation', {start: 76, end: 79}),
+					frames: this.anims.generateFrameNames('atlas', {prefix: 'knight_run', end: 4}),
 					frameRate: 8,
 					repeat: -1
 				});
-				state.dummy = this.physics.add.sprite(XOFFSET_LEVEL + node_spawn.index_col*WIDTH_TILE, YOFFSET_LEVEL + node_spawn.index_row*HEIGHT_TILE, 'tileset_animation').setDisplayOrigin(8, 28).play('dummy_run');
+				state.dummy = this.physics.add.sprite(XOFFSET_LEVEL + node_spawn.index_col*WIDTH_TILE, YOFFSET_LEVEL + node_spawn.index_row*HEIGHT_TILE, 'atlas').setDisplayOrigin(8, 28);
 				state.dummy.setPipeline('Light2D');
 				state.dummy.body.setSize(12, 12).setOffset(2, 20);
 
-				this.anims.create({
-					key: 'damsel',
-					frames: this.anims.generateFrameNumbers('tileset_animation', {start: 8, end: 11}),
-					frameRate: 8,
-					repeat: -1
-				});
-				const damsel = this.add.sprite(232, 150, 'tileset_animation').setDisplayOrigin(8, 28).play('damsel');
-				damsel.setPipeline('Light2D');
+				// this.anims.create({
+				// 	key: 'damsel',
+				// 	frames: this.anims.generateFrameNames('tileset_animation', {start: 8, end: 11}),
+				// 	frameRate: 8,
+				// 	repeat: -1
+				// });
+				// const damsel = this.add.sprite(232, 150, 'tileset_animation').setDisplayOrigin(8, 28).play('damsel');
+				// damsel.setPipeline('Light2D');
 
 
 				// this.physics.add.collider(state.dummy, staticgroups.walls);
