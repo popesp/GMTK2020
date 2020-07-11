@@ -7,6 +7,8 @@ const YOFFSET_LEVEL = 48;
 const WIDTH_TILE = 16;
 const HEIGHT_TILE = 16;
 
+const THINK_SPEED = 0.05;
+
 
 const tilegroups = {
 	null: 'walls',
@@ -151,33 +153,28 @@ const mood_handler = {
 	bored: function(state)
 	{
 		// randomly decide to set a new destination when bored
-		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random() * 100) < 1)
+		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random()*240) < 1)
 		{
-			if(Math.floor(Math.random() * 100) < 20)
+			let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
+			let distance = 1;
+			while(distance < 5)
 			{
-				state.dummy_mood = 1;
-				state.actionqueue = [];
-				state.dummy_speed = 0.06;
+				end_node = end_node.paths[Math.floor(Math.random() * end_node.paths.length)];
+				distance++;
 			}
-			else
+			if(end_node !== state.node_current)
 			{
-				let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
-				let distance = 1;
-				while(distance < 5)
+				state.actionqueue.push({
+					type: 'think',
+					duration: Math.random()*4 + 2
+				},
 				{
-					end_node = end_node.paths[Math.floor(Math.random() * end_node.paths.length)];
-					distance++;
-				}
-				if(end_node !== state.node_current)
-				{
-					state.actionqueue.push({
-						type: 'move',
-						node_destination: end_node,
-						index_path: 0,
-						progress_path: 0,
-						path: null
-					});
-				}
+					type: 'move',
+					node_destination: end_node,
+					index_path: 0,
+					progress_path: 0,
+					path: null
+				});
 			}
 		}
 	},
@@ -186,11 +183,7 @@ const mood_handler = {
 		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random() * 100) < 1)
 		{
 			if(Math.floor(Math.random() * 100) < 20)
-			{
-				state.dummy_mood = 0;
-				state.actionqueue = [];
-				state.dummy_speed = 0.03;
-			}
+				changemood(state, 'bored');
 			else
 			{
 				let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
@@ -215,6 +208,21 @@ const mood_handler = {
 	}
 };
 
+function changemood(state, mood)
+{
+	state.action_current = null;
+	state.actionqueue = [];
+
+	state.actionqueue.push({
+		type: 'think',
+		duration: Math.random() + 1
+	},
+	{
+		type: 'mood',
+		mood: mood
+	});
+}
+
 document.addEventListener('DOMContentLoaded', function()
 {
 	const dom_container = document.getElementById('container');
@@ -229,8 +237,8 @@ document.addEventListener('DOMContentLoaded', function()
 		action_current: null,
 		// normalized tile units per frame
 		dummy_speed: 0.03,
-		// 0 - bored , 1 - scared, 2 - brave
-		dummy_mood: 0
+
+		dummy_mood: 'bored'
 	};
 
 	const game_scene = new Phaser.Class({
@@ -407,7 +415,14 @@ document.addEventListener('DOMContentLoaded', function()
 			// if idle, perform next action when applicable
 			if(action !== null)
 			{
-				if(action.type === 'move')
+				if(action.type === 'think')
+				{
+					action.duration -= THINK_SPEED;
+					state.dummy.anims.pause();
+					if(action.duration <= 0)
+						state.action_current = null;
+				}
+				else if(action.type === 'move')
 				{
 					if(action.path === null)
 						action.path = findpath(state.node_current, action.node_destination);
@@ -446,22 +461,29 @@ document.addEventListener('DOMContentLoaded', function()
 							state.dummy.setPosition(x, y);
 						}
 
-						state.dummy.anims.play(state.dummy_mood === 0 ? 'dummy_run' : 'dummy_run_scared', true);
+						state.dummy.anims.play(state.dummy_mood === 'scared' ? 'dummy_run_scared' : 'dummy_run', true);
 					}
+				}
+				else if(action.type === 'mood')
+				{
+					state.dummy_mood = action.mood;
+					state.action_current = null;
+					state.dummy_speed = action.mood === 'scared' ? 0.06 : 0.03;
 				}
 			}
 			else
 			{
-				state.dummy.anims.play(state.dummy_mood === 0 ? 'dummy_idle' : 'dummy_idle_scared', true);
+				state.dummy.anims.play(state.dummy_mood === 'scared' ? 'dummy_idle_scared' : 'dummy_idle', true);
 
 				if(state.actionqueue.length > 0)
 					state.action_current = state.actionqueue.shift();
 			}
 
 			state.dummy.setFlipX(state.direction_dummy);
-			if(state.dummy_mood === 0)
+
+			if(state.dummy_mood === 'bored')
 				mood_handler.bored(state);
-			else if(state.dummy_mood === 1)
+			else if(state.dummy_mood === 'scared')
 				mood_handler.scared(state);
 		}
 	});
@@ -503,9 +525,11 @@ document.addEventListener('DOMContentLoaded', function()
 		update: function()
 		{
 			let mood_text;
-			if(state.dummy_mood === 0)
+			if(state.action_current !== null && state.action_current.type === 'think')
+				mood_text = '...';
+			else if(state.dummy_mood === 'bored')
 				mood_text = 'Bored';
-			else if(state.dummy_mood === 1)
+			else if(state.dummy_mood === 'scared')
 				mood_text = 'Scared';
 
 			state.dummy_mood_text.setText(mood_text);
