@@ -12,7 +12,7 @@ const THINK_SPEED = 0.05;
 const LIGHT_INTENSITY = 2;
 const LIGHT_RADIUS = 60;
 
-const WIN_RADIUS = 32;
+const WIN_RADIUS = 40;
 
 
 const tilegroups = {
@@ -52,24 +52,27 @@ function makegraph(level, tilegroups, state)
 	{
 		return row.map(function(tile, index_col)
 		{
-			if(tilegroups[tile] !== 'below')
-				return null;
-
-			const node = {
-				index_row,
-				index_col,
-				x: XOFFSET_LEVEL + WIDTH_TILE*index_col,
-				y: YOFFSET_LEVEL + HEIGHT_TILE*index_row,
-				paths: []
-			};
-
-			if(tile === 'floor_ladder')
+			if(tilegroups[tile] === 'below' || tile === null || tile === 'edge')
 			{
-				node.win = true;
-				state.nodes_win.push(node);
+				const node = {
+					index_row,
+					index_col,
+					x: XOFFSET_LEVEL + WIDTH_TILE*index_col,
+					y: YOFFSET_LEVEL + HEIGHT_TILE*index_row,
+					paths: []
+				};
+				if(tile === null || tile === 'edge')
+					node.hazard = true;
+				if(tile === 'floor_ladder')
+				{
+					node.win = true;
+					state.nodes_win.push(node);
+				}
+
+				return node;
 			}
 
-			return node;
+			return null;
 		});
 	});
 
@@ -144,7 +147,7 @@ function closestlit(start, graph)
 // start, graph, new Map()
 function closestlit_recurse(current, graph, visited, queue)
 {
-	if(current.lit)
+	if(current.lit && !current.hazard)
 		return current;
 
 	for(let index_path = 0; index_path < current.paths.length; ++index_path)
@@ -187,8 +190,13 @@ function reconstruct(from, current)
 	return path;
 }
 
-function findpath(start, goal)
+function findpath(start, goal, dummy_mood)
 {
+	// if(dummy_mood === 'scared')
+	// {
+	// 	wut
+	// 	return;
+	// }
 	const openset = [start];
 	const from = new Map();
 
@@ -197,7 +205,6 @@ function findpath(start, goal)
 
 	const score_f = new Map();
 	score_f.set(start, heuristic(start, goal));
-
 	while(openset.length > 0)
 	{
 		const current = openset.shift();
@@ -207,6 +214,8 @@ function findpath(start, goal)
 		for(let index_path = 0; index_path < current.paths.length; ++index_path)
 		{
 			const node_adj = current.paths[index_path];
+			if(dummy_mood !== 'scared' && node_adj.hazard)
+				continue;
 
 			const score_g_temp = score_g.get(current) + 1;
 			const score_g_adj = score_g.has(node_adj) ? score_g.get(node_adj) : Infinity;
@@ -261,27 +270,42 @@ const mood_handler = {
 			}
 		}
 
-		for(let index_node_win = 0; index_node_win < state.nodes_win.length; ++index_node_win)
+		let moving_for_the_win = false;
+		for(let i = 0; i < state.actionqueue.length; ++i)
 		{
-			const node_win = state.nodes_win[index_node_win];
-
-			const dx = node_win.x - state.node_current.x;
-			const dy = node_win.y - state.node_current.y;
-
-			if(dx*dx + dy*dy <= WIN_RADIUS*WIN_RADIUS)
+			const action = state.actionqueue[i];
+			if(state.nodes_win.includes(action.node_destination))
 			{
-				state.action_current = null;
-				state.actionqueue.push({
-					type: 'think',
-					duration: Math.random()*2 + 4
-				}, {
-					type: 'move',
-					node_destination: node_win,
-					index_path: 0,
-					progress_path: 0,
-					path: null
-				});
+				moving_for_the_win = true;
 				break;
+			}
+		}
+		if(state.action_current !== null && state.nodes_win.includes(state.action_current.node_destination))
+			moving_for_the_win = true;
+		if(!moving_for_the_win)
+		{
+			for(let index_node_win = 0; index_node_win < state.nodes_win.length; ++index_node_win)
+			{
+				const node_win = state.nodes_win[index_node_win];
+
+				const dx = node_win.x - state.node_current.x;
+				const dy = node_win.y - state.node_current.y;
+
+				if(dx*dx + dy*dy <= WIN_RADIUS*WIN_RADIUS)
+				{
+					state.action_current = null;
+					state.actionqueue.push({
+						type: 'think',
+						duration: Math.random()*2 + 4
+					}, {
+						type: 'move',
+						node_destination: node_win,
+						index_path: 0,
+						progress_path: 0,
+						path: null
+					});
+					break;
+				}
 			}
 		}
 
@@ -370,6 +394,7 @@ document.addEventListener('DOMContentLoaded', function()
 		changing_moods: false,
 
 		win: false,
+		lose: false,
 		nodes_win: []
 	};
 
@@ -569,6 +594,15 @@ document.addEventListener('DOMContentLoaded', function()
 				}
 				return;
 			}
+			if(state.node_current.hazard)
+			{
+				if(!state.lose)
+				{
+					state.lose = true;
+					this.add.text(120, 30, 'You Died Idiot kekw', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
+				}
+				return;
+			}
 			const action = state.action_current;
 
 			// if idle, perform next action when applicable
@@ -584,7 +618,7 @@ document.addEventListener('DOMContentLoaded', function()
 				else if(action.type === 'move')
 				{
 					if(action.path === null)
-						action.path = findpath(state.node_current, action.node_destination);
+						action.path = findpath(state.node_current, action.node_destination, state.dummy_mood);
 
 					if(action.path.length > 1)
 					{
