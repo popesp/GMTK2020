@@ -14,6 +14,13 @@ const HEIGHT_TILE = 16;
 const tilegroups = {
 	null: 'walls',
 	'floor1': 'below',
+	'floor2': 'below',
+	'floor3': 'below',
+	'floor4': 'below',
+	'floor5': 'below',
+	'floor6': 'below',
+	'floor7': 'below',
+	'floor8': 'below',
 	'wall_left': 'walls',
 	'wall_middle': 'walls',
 	'wall_right': 'walls',
@@ -146,18 +153,19 @@ document.addEventListener('DOMContentLoaded', function()
 
 	const game_scene = new Phaser.Class({
 		Extends: Phaser.Scene,
-		initialize: function ux_scene()
+		initialize: function()
 		{
 			Phaser.Scene.call(this, {key: 'game_scene', active: true});
 		},
+
 		preload: function()
 		{
 			// load assets
-			this.load.spritesheet('tileset_animation', ['assets/tileset.png', 'assets/normal.png'], {frameWidth: 16, frameHeight: 32});
 			this.load.atlas('atlas', ['assets/tileset.png', 'assets/normal.png'], 'assets/tileset.json');
 
 			this.load.json('level1', 'assets/levels/level1.json');
 		},
+
 		create: function()
 		{
 			const staticgroups = {
@@ -195,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function()
 
 			const graph = makegraph(level, tilegroups);
 
-			const node_spawn = graph[0][0];
+			const node_spawn = graph[3][2];
 			state.node_current = node_spawn;
 
 			state.actionqueue.push({
@@ -216,36 +224,34 @@ document.addEventListener('DOMContentLoaded', function()
 			// characters
 			this.anims.create({
 				key: 'dummy_idle',
-				frames: this.anims.generateFrameNumbers('tileset_animation', {start: 72, end: 75}),
+				frames: this.anims.generateFrameNames('atlas', {prefix: 'knight_idle', end: 4}),
 				frameRate: 6,
 				repeat: -1
 			});
 			this.anims.create({
 				key: 'dummy_run',
-				frames: this.anims.generateFrameNumbers('tileset_animation', {start: 76, end: 79}),
+				frames: this.anims.generateFrameNames('atlas', {prefix: 'knight_run', end: 4}),
 				frameRate: 8,
 				repeat: -1
 			});
-			state.dummy = this.physics.add.sprite(XOFFSET_LEVEL + node_spawn.index_col*WIDTH_TILE, YOFFSET_LEVEL + node_spawn.index_row*HEIGHT_TILE, 'tileset_animation').setDisplayOrigin(8, 28).play('dummy_run');
+			state.dummy = this.physics.add.sprite(XOFFSET_LEVEL + node_spawn.index_col*WIDTH_TILE, YOFFSET_LEVEL + node_spawn.index_row*HEIGHT_TILE, 'atlas').setOrigin(0.5, 1);
 			state.dummy.setPipeline('Light2D');
-			state.dummy.body.setSize(12, 12).setOffset(2, 20);
+			state.dummy.body.setSize(12, 6).setOffset(2, 28);
 
-			this.anims.create({
-				key: 'damsel',
-				frames: this.anims.generateFrameNumbers('tileset_animation', {start: 8, end: 11}),
-				frameRate: 8,
-				repeat: -1
-			});
-			const damsel = this.add.sprite(232, 150, 'tileset_animation').setDisplayOrigin(8, 28).play('damsel');
-			damsel.setPipeline('Light2D');
+			// this.anims.create({
+			// 	key: 'damsel',
+			// 	frames: this.anims.generateFrameNames('tileset_animation', {start: 8, end: 11}),
+			// 	frameRate: 8,
+			// 	repeat: -1
+			// });
+			// const damsel = this.add.sprite(232, 150, 'tileset_animation').setDisplayOrigin(8, 28).play('damsel');
+			// damsel.setPipeline('Light2D');
 
 
 			// this.physics.add.collider(state.dummy, staticgroups.walls);
 
-
-			// keyboard controls
-			state.cursors = this.input.keyboard.createCursorKeys();
 		},
+
 		update: function()
 		{
 			const action = state.action_current;
@@ -300,35 +306,6 @@ document.addEventListener('DOMContentLoaded', function()
 				if(state.actionqueue.length > 0)
 					state.action_current = state.actionqueue.shift();
 			}
-
-			// let moving = false;
-			// if(state.cursors.left.isDown)
-			// {
-			// 	state.direction_dummy = 0;
-			// 	state.dummy.setVelocityX(-SPEED_DUMMY);
-			// 	moving = true;
-			// }
-			// else if(state.cursors.right.isDown)
-			// {
-			// 	state.direction_dummy = 1;
-			// 	state.dummy.setVelocityX(SPEED_DUMMY);
-			// 	moving = true;
-			// }
-			// else
-			// 	state.dummy.setVelocityX(0);
-
-			// if(state.cursors.up.isDown)
-			// {
-			// 	state.dummy.setVelocityY(-SPEED_DUMMY);
-			// 	moving = true;
-			// }
-			// else if(state.cursors.down.isDown)
-			// {
-			// 	state.dummy.setVelocityY(SPEED_DUMMY);
-			// 	moving = true;
-			// }
-			// else
-			// 	state.dummy.setVelocityY(0);
 
 			state.dummy.setFlipX(state.direction_dummy);
 		}
@@ -405,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function()
 		physics: {
 			default: 'arcade',
 			arcade: {
-				// debug: true,
+				debug: true,
 				fps: 30
 			}
 		},
