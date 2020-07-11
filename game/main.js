@@ -9,6 +9,9 @@ const HEIGHT_TILE = 16;
 
 const THINK_SPEED = 0.05;
 
+const LIGHT_INTENSITY = 2;
+const LIGHT_RADIUS = 40;
+
 
 const tilegroups = {
 	null: 'walls',
@@ -49,6 +52,8 @@ function makegraph(level, tilegroups)
 				return {
 					index_row,
 					index_col,
+					x: XOFFSET_LEVEL + WIDTH_TILE*index_col,
+					y: YOFFSET_LEVEL + HEIGHT_TILE*index_row,
 					paths: []
 				};
 			return null;
@@ -81,6 +86,71 @@ function makegraph(level, tilegroups)
 	});
 
 	return nodes;
+}
+
+function lightgraph(graph, sconces)
+{
+	for(let index_row = 0; index_row < graph.length; ++index_row)
+	{
+		const row = graph[index_row];
+
+		for(let index_col = 0; index_col < row.length; ++index_col)
+		{
+			const node = row[index_col];
+			if(node === null)
+				continue;
+
+			node.lit = false;
+			for(let index_sconce = 0; index_sconce < sconces.length; ++index_sconce)
+			{
+				const sconce = sconces[index_sconce];
+				if(!sconce.lit)
+					continue;
+
+				const dx = sconce.light.x - node.x;
+				const dy = sconce.light.y - node.y;
+
+				if(dx*dx + dy*dy < LIGHT_RADIUS*LIGHT_RADIUS)
+				{
+					node.lit = true;
+					break;
+				}
+			}
+		}
+	}
+}
+
+function closestlit(start, graph)
+{
+	const visited = new Map();
+	visited.set(start);
+
+	return closestlit_recurse(start, graph, visited, []);
+}
+
+// start, graph, new Map()
+function closestlit_recurse(current, graph, visited, queue)
+{
+	if(current.lit)
+		return current;
+
+	for(let index_path = 0; index_path < current.paths.length; ++index_path)
+	{
+		const node = current.paths[index_path];
+		if(node === null)
+			continue;
+
+		if(!visited.has(node))
+		{
+			visited.set(node);
+			queue.push(node);
+		}
+	}
+
+	while(queue.length > 0)
+		return closestlit_recurse(queue.shift(), graph, visited, queue);
+
+	return null;
 }
 
 function heuristic(start, goal)
@@ -177,32 +247,50 @@ const mood_handler = {
 				});
 			}
 		}
+
+		if(!state.node_current.lit)
+			changemood(state, 'scared');
 	},
 	scared: function(state)
 	{
-		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random() * 100) < 1)
+		// if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random() * 60) < 1)
+		// {
+		// 	let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
+		// 	let distance = 1;
+		// 	while(distance < 9)
+		// 	{
+		// 		end_node = end_node.paths[Math.floor(Math.random() * end_node.paths.length)];
+		// 		distance++;
+		// 	}
+		// 	if(end_node !== state.node_current)
+		// 	{
+		// 		state.actionqueue.push({
+		// 			type: 'move',
+		// 			node_destination: end_node,
+		// 			index_path: 0,
+		// 			progress_path: 0,
+		// 			path: null
+		// 		});
+		// 	}
+		// }
+
+		console.log(state.node_current);
+
+		if(state.node_current.lit)
+			changemood(state, 'bored');
+		else
 		{
-			if(Math.floor(Math.random() * 100) < 20)
-				changemood(state, 'bored');
-			else
+			const destination = closestlit(state.node_current, state.graph);
+			if(state.action_current === null || (state.action_current.type === 'move' && destination !== null && destination !== state.action_current.node_destination))
 			{
-				let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
-				let distance = 1;
-				while(distance < 9)
-				{
-					end_node = end_node.paths[Math.floor(Math.random() * end_node.paths.length)];
-					distance++;
-				}
-				if(end_node !== state.node_current)
-				{
-					state.actionqueue.push({
-						type: 'move',
-						node_destination: end_node,
-						index_path: 0,
-						progress_path: 0,
-						path: null
-					});
-				}
+				state.action_current = null;
+				state.actionqueue.push({
+					type: 'move',
+					node_destination: destination,
+					index_path: 0,
+					progress_path: 0,
+					path: null
+				});
 			}
 		}
 	}
@@ -210,6 +298,11 @@ const mood_handler = {
 
 function changemood(state, mood)
 {
+	if(state.changing_moods)
+		return;
+
+	state.changing_moods = true;
+
 	state.action_current = null;
 	state.actionqueue = [];
 
@@ -238,7 +331,8 @@ document.addEventListener('DOMContentLoaded', function()
 		// normalized tile units per frame
 		dummy_speed: 0.03,
 
-		dummy_mood: 'bored'
+		dummy_mood: 'bored',
+		changing_moods: false
 	};
 
 	const game_scene = new Phaser.Class({
@@ -340,49 +434,53 @@ document.addEventListener('DOMContentLoaded', function()
 					const x = XOFFSET_LEVEL + object.col*WIDTH_TILE;
 					const y = YOFFSET_LEVEL + object.row*HEIGHT_TILE;
 
-					const sprite = this.add.sprite(x, y, 'atlas', 'sconce_unlit');
-
-					sprite.anims.play(object.lit ? 'sconce_lit' : 'sconce_unlit');
-
-					sprite.setPipeline('Light2D');
-					const sconce = this.lights.addLight(x, y, 80).setColor(0xffe8b0);
-					sconce.setIntensity(object.lit ? 2 : 0);
+					const sconce = {
+						light: this.lights.addLight(x, y, LIGHT_RADIUS).setColor(0xffe8b0).setIntensity(object.lit ? LIGHT_INTENSITY : 0),
+						sprite: this.add.sprite(x, y, 'atlas', 'sconce_unlit').setPipeline('Light2D').anims.play(object.lit ? 'sconce_lit' : 'sconce_unlit'),
+						lit: object.lit
+					};
 					state.sconces.push(sconce);
 
-					sprite.setInteractive({
+					sconce.sprite.setInteractive({
 						useHandCursor: true
 					});
-					sprite.on('pointerdown', function()
+					sconce.sprite.on('pointerdown', function()
 					{
 						this.setTint(0xff0000);
 					});
-					sprite.on('pointerup', function()
+					sconce.sprite.on('pointerup', function()
 					{
-						if(sconce.intensity === 0 && state.ux_stored_light.available > 0)
+						if(!sconce.lit && state.ux_stored_light.available > 0)
 						{
-							sconce.setIntensity(2);
-							this.anims.remove('sconce_unlit');
-							this.anims.play('sconce_lit');
+							sconce.lit = true;
+							sconce.light.setIntensity(LIGHT_INTENSITY);
+							sconce.sprite.anims.remove('sconce_unlit');
+							sconce.sprite.anims.play('sconce_lit');
 
 							state.ux_stored_light.sprites[--state.ux_stored_light.available].anims.remove('sconce_lit');
 							state.ux_stored_light.sprites[state.ux_stored_light.available].anims.play('sconce_unlit');
 						}
-						else if(sconce.intensity !== 0 && state.ux_stored_light.available < 3)
+						else if(sconce.lit && state.ux_stored_light.available < 3)
 						{
-							sconce.setIntensity(0);
+							sconce.lit = false;
+							sconce.light.setIntensity(0);
 							this.anims.remove('sconce_lit');
 							this.anims.play('sconce_unlit');
 
 							state.ux_stored_light.sprites[state.ux_stored_light.available].anims.play('sconce_lit');
 							state.ux_stored_light.sprites[state.ux_stored_light.available++].anims.remove('sconce_unlit');
 						}
+
+						lightgraph(state.graph, state.sconces);
 					});
-					sprite.on('pointerout', function()
+					sconce.sprite.on('pointerout', function()
 					{
 						this.clearTint();
 					});
 				}
 			}
+
+			lightgraph(state.graph, state.sconces);
 
 			// initialize character
 			state.dummy = this.physics.add.sprite(XOFFSET_LEVEL + node_spawn.index_col*WIDTH_TILE, YOFFSET_LEVEL + node_spawn.index_row*HEIGHT_TILE, 'atlas').setOrigin(0.5, 1);
@@ -444,7 +542,7 @@ document.addEventListener('DOMContentLoaded', function()
 							{
 								const node_end = action.path[action.index_path];
 
-								state.dummy.setPosition(XOFFSET_LEVEL + WIDTH_TILE*node_end.index_col, YOFFSET_LEVEL + HEIGHT_TILE*node_end.index_row);
+								state.dummy.setPosition(node_end.x, node_end.y);
 								state.node_current = node_end;
 								state.action_current = null;
 							}
@@ -476,6 +574,8 @@ document.addEventListener('DOMContentLoaded', function()
 					state.dummy_mood = action.mood;
 					state.action_current = null;
 					state.dummy_speed = action.mood === 'scared' ? 0.06 : 0.03;
+
+					state.changing_moods = false;
 				}
 			}
 			else
