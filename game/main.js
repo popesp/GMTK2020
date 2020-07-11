@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function()
 		{
 			// load assets
 			this.load.atlas('atlas', ['assets/tileset.png', 'assets/normal.png'], 'assets/tileset.json');
-
+			this.load.json('level0', 'assets/levels/level0.json');
 			this.load.json('level1', 'assets/levels/level1.json');
 		},
 
