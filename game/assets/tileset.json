@@ -241,7 +241,7 @@
 			"frame": {"x": 80, "y": 128, "w": 16, "h": 16}
 		},
 		{
-			"filename": "wall_inner_corner_l_top_rigth",
+			"filename": "wall_inner_corner_l_top_right",
 			"frame": {"x": 64, "y": 128, "w": 16, "h": 16}
 		},
 		{
@@ -249,7 +249,7 @@
 			"frame": {"x": 80, "y": 144, "w": 16, "h": 16}
 		},
 		{
-			"filename": "wall_inner_corner_mid_rigth",
+			"filename": "wall_inner_corner_mid_right",
 			"frame": {"x": 64, "y": 144, "w": 16, "h": 16}
 		},
 		{
@@ -257,7 +257,7 @@
 			"frame": {"x": 80, "y": 160, "w": 16, "h": 16}
 		},
 		{
-			"filename": "wall_inner_corner_t_top_rigth",
+			"filename": "wall_inner_corner_t_top_right",
 			"frame": {"x": 64, "y": 160, "w": 16, "h": 16}
 		},
 		{

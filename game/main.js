@@ -1,9 +1,6 @@
 const WIDTH_CANVAS = 800;
 const HEIGHT_CANVAS = 600;
 
-// normalized tile units per frame
-const SPEED_DUMMY = 0.03;
-
 const XOFFSET_LEVEL = 64;
 const YOFFSET_LEVEL = 48;
 
@@ -21,9 +18,21 @@ const tilegroups = {
 	'floor6': 'below',
 	'floor7': 'below',
 	'floor8': 'below',
+	'floor_ladder': 'below',
 	'wall_left': 'walls',
 	'wall_middle': 'walls',
 	'wall_right': 'walls',
+	'wall_top_middle': 'walls',
+	'wall_variant1': 'walls',
+	'wall_variant2': 'walls',
+	'wall_variant3': 'walls',
+	'wall_variant4': 'walls',
+	'wall_variant5': 'walls',
+	'wall_variant6': 'walls',
+	'wall_side_mid_left': 'walls',
+	'wall_side_mid_right': 'walls',
+	'wall_corner_bottom_left': 'walls',
+	'wall_corner_bottom_right': 'walls',
 	'edge': 'walls'
 };
 
@@ -138,17 +147,89 @@ function findpath(start, goal)
 	return [];
 }
 
+const mood_handler = {
+	bored: function(state)
+	{
+		// randomly decide to set a new destination when bored
+		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random() * 100) < 1)
+		{
+			if(Math.floor(Math.random() * 100) < 20)
+			{
+				state.dummy_mood = 1;
+				state.actionqueue = [];
+				state.dummy_speed = 0.06;
+			}
+			else
+			{
+				let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
+				let distance = 1;
+				while(distance < 5)
+				{
+					end_node = end_node.paths[Math.floor(Math.random() * end_node.paths.length)];
+					distance++;
+				}
+				if(end_node !== state.node_current)
+				{
+					state.actionqueue.push({
+						type: 'move',
+						node_destination: end_node,
+						index_path: 0,
+						progress_path: 0,
+						path: null
+					});
+				}
+			}
+		}
+	},
+	scared: function(state)
+	{
+		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random() * 100) < 1)
+		{
+			if(Math.floor(Math.random() * 100) < 20)
+			{
+				state.dummy_mood = 0;
+				state.actionqueue = [];
+				state.dummy_speed = 0.03;
+			}
+			else
+			{
+				let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
+				let distance = 1;
+				while(distance < 9)
+				{
+					end_node = end_node.paths[Math.floor(Math.random() * end_node.paths.length)];
+					distance++;
+				}
+				if(end_node !== state.node_current)
+				{
+					state.actionqueue.push({
+						type: 'move',
+						node_destination: end_node,
+						index_path: 0,
+						progress_path: 0,
+						path: null
+					});
+				}
+			}
+		}
+	}
+};
+
 document.addEventListener('DOMContentLoaded', function()
 {
 	const dom_container = document.getElementById('container');
 
 	const state = {
+		graph: null,
 		// false: left, true: right
 		direction_dummy: 0,
 		node_current: null,
-
 		actionqueue: [],
-		action_current: null
+		action_current: null,
+		// normalized tile units per frame
+		dummy_speed: 0.03,
+		// 0 - bored , 1 - scared, 2 - brave
+		dummy_mood: 0
 	};
 
 	const game_scene = new Phaser.Class({
@@ -177,10 +258,12 @@ document.addEventListener('DOMContentLoaded', function()
 			for(let index_row = 0; index_row < level.tiles.length; ++index_row)
 			{
 				const row = level.tiles[index_row];
+				const row_overlay = level.tiles_top[index_row];
 
 				for(let index_col = 0; index_col < row.length; ++index_col)
 				{
 					const tile = row[index_col];
+					const tile_overlay = row_overlay[index_col];
 
 					const tilegroup = tilegroups[tile];
 
@@ -188,10 +271,12 @@ document.addEventListener('DOMContentLoaded', function()
 					const y = YOFFSET_LEVEL + index_row*HEIGHT_TILE;
 
 					const sprite = this.add.sprite(x, y, 'atlas', tile).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
+					const sprite_overlay = this.add.sprite(x, y, 'atlas', tile_overlay).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
 					if(staticgroups[tilegroup])
 						staticgroups[tilegroup].add(sprite);
 
 					sprite.setPipeline('Light2D');
+					sprite_overlay.setPipeline('Light2D');
 				}
 			}
 
@@ -199,25 +284,9 @@ document.addEventListener('DOMContentLoaded', function()
 			this.lights.addLight(0, 0, 200).setColor(0xffffff).setIntensity(2);
 			this.lights.addLight(200, 200, 200).setColor(0xffffff).setIntensity(2);
 
-			const graph = makegraph(level, tilegroups);
-
-			const node_spawn = graph[3][2];
+			state.graph = makegraph(level, tilegroups);
+			const node_spawn = state.graph[3][2];
 			state.node_current = node_spawn;
-
-			state.actionqueue.push({
-				type: 'move',
-				node_destination: graph[9][0],
-				index_path: 0,
-				progress_path: 0,
-				path: null
-			});
-			state.actionqueue.push({
-				type: 'move',
-				node_destination: graph[2][9],
-				index_path: 0,
-				progress_path: 0,
-				path: null
-			});
 
 			// characters
 			this.anims.create({
@@ -248,6 +317,21 @@ document.addEventListener('DOMContentLoaded', function()
 
 			// this.physics.add.collider(state.dummy, staticgroups.walls);
 
+
+			// state.actionqueue.push({
+			// 	type: 'move',
+			// 	node_destination: state.graph[9][0],
+			// 	index_path: 0,
+			// 	progress_path: 0,
+			// 	path: null
+			// });
+			// state.actionqueue.push({
+			// 	type: 'move',
+			// 	node_destination: state.graph[2][9],
+			// 	index_path: 0,
+			// 	progress_path: 0,
+			// 	path: null
+			// });
 		},
 
 		update: function()
@@ -262,39 +346,42 @@ document.addEventListener('DOMContentLoaded', function()
 					if(action.path === null)
 						action.path = findpath(state.node_current, action.node_destination);
 
-					action.progress_path += SPEED_DUMMY;
-					while(action.progress_path > 1)
+					if(action.path.length > 1)
 					{
-						action.index_path++;
-						if(action.index_path === action.path.length - 1)
+						action.progress_path += state.dummy_speed;
+						while(action.progress_path > 1)
 						{
-							const node_end = action.path[action.index_path];
+							action.index_path++;
+							if(action.index_path === action.path.length - 1)
+							{
+								const node_end = action.path[action.index_path];
 
-							state.dummy.setPosition(XOFFSET_LEVEL + WIDTH_TILE*node_end.index_col, YOFFSET_LEVEL + HEIGHT_TILE*node_end.index_row);
-							state.node_current = node_end;
-							state.action_current = null;
+								state.dummy.setPosition(XOFFSET_LEVEL + WIDTH_TILE*node_end.index_col, YOFFSET_LEVEL + HEIGHT_TILE*node_end.index_row);
+								state.node_current = node_end;
+								state.action_current = null;
+							}
+							else
+								action.progress_path -= 1;
 						}
-						else
-							action.progress_path -= 1;
+
+						if(state.action_current !== null)
+						{
+							const node_from = action.path[action.index_path];
+							const node_to = action.path[action.index_path + 1];
+
+							if(node_from.index_col !== node_to.index_col)
+								state.direction_dummy = node_to.index_col < node_from.index_col;
+
+							state.node_current = action.progress_path < 0.5 ? node_from : node_to;
+
+							const x = Math.floor(XOFFSET_LEVEL + WIDTH_TILE*(node_from.index_col*(1 - action.progress_path) + node_to.index_col*action.progress_path));
+							const y = Math.floor(YOFFSET_LEVEL + HEIGHT_TILE*(node_from.index_row*(1 - action.progress_path) + node_to.index_row*action.progress_path));
+
+							state.dummy.setPosition(x, y);
+						}
+
+						state.dummy.anims.play('dummy_run', true);
 					}
-
-					if(state.action_current !== null)
-					{
-						const node_from = action.path[action.index_path];
-						const node_to = action.path[action.index_path + 1];
-
-						if(node_from.index_col !== node_to.index_col)
-							state.direction_dummy = node_to.index_col < node_from.index_col;
-
-						state.node_current = action.progress_path < 0.5 ? node_from : node_to;
-
-						const x = Math.floor(XOFFSET_LEVEL + WIDTH_TILE*(node_from.index_col*(1 - action.progress_path) + node_to.index_col*action.progress_path));
-						const y = Math.floor(YOFFSET_LEVEL + HEIGHT_TILE*(node_from.index_row*(1 - action.progress_path) + node_to.index_row*action.progress_path));
-
-						state.dummy.setPosition(x, y);
-					}
-
-					state.dummy.anims.play('dummy_run', true);
 				}
 			}
 			else
@@ -306,6 +393,10 @@ document.addEventListener('DOMContentLoaded', function()
 			}
 
 			state.dummy.setFlipX(state.direction_dummy);
+			if(state.dummy_mood === 0)
+				mood_handler.bored(state);
+			else if(state.dummy_mood === 1)
+				mood_handler.scared(state);
 		}
 	});
 
@@ -326,47 +417,21 @@ document.addEventListener('DOMContentLoaded', function()
 			this.add.sprite(36, 0, 'atlas_ux', 'ux_heart_half').setOrigin(0, 0);
 			this.add.sprite(72, 0, 'atlas_ux', 'ux_heart_empty').setOrigin(0, 0);
 
-			const snuff_out = this.add.sprite(304, 0, 'atlas_ux', 'ux_snuff_out').setOrigin(0, 0);
-			snuff_out.setInteractive({
-				useHandCursor: true
-			});
-			snuff_out.on('pointerdown', function(pointer)
-			{
-				this.setTint(0xff0000);
-			});
+			// const snuff_out = this.add.sprite(304, 0, 'atlas_ux', 'ux_snuff_out').setOrigin(0, 0);
+			// snuff_out.setInteractive({
+			// 	useHandCursor: true
+			// });
+			// snuff_out.on('pointerdown', function(pointer)
+			// {
+			// 	this.setTint(0xff0000);
+			// });
 
-			snuff_out.on('pointerout', function(pointer)
-			{
-				this.clearTint();
-			});
+			// snuff_out.on('pointerout', function(pointer)
+			// {
+			// 	this.clearTint();
+			// });
 
-			const sound = this.add.sprite(336, 0, 'atlas_ux', 'ux_sound').setOrigin(0, 0);
-			sound.setInteractive({
-				useHandCursor: true
-			});
-			sound.on('pointerdown', function(pointer)
-			{
-				this.setTint(0xff0000);
-			});
-
-			sound.on('pointerout', function(pointer)
-			{
-				this.clearTint();
-			});
-
-			const door_collapse = this.add.sprite(368, 0, 'atlas_ux', 'ux_door_collapse').setOrigin(0, 0);
-			door_collapse.setInteractive({
-				useHandCursor: true
-			});
-			door_collapse.on('pointerdown', function(pointer)
-			{
-				this.setTint(0xff0000);
-			});
-
-			door_collapse.on('pointerout', function(pointer)
-			{
-				this.clearTint();
-			});
+			this.add.text(250, 0, 'Upper Dungeon - 1', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
 		}
 	});
 

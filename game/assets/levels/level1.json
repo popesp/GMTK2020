@@ -1,28 +1,30 @@
 {
 	"name": "Level 1",
 	"tiles": [
-		["wall_side_top_left",	"wall_top_middle",	"wall_top_middle",		"wall_top_middle",	"wall_side_top_right",		"wall_side_top_left",	"wall_top_middle",	"wall_top_middle",	"wall_top_middle",	"wall_top_middle"],
-		["wall_side_mid_left",	"wall_middle",		"wall_variant1",		"wall_middle",		"wall_side_mid_right",		"wall_side_mid_left",	"wall_middle",	"wall_variant3",	"wall_middle",	"wall_middle"],
-		["wall_side_mid_left",	"floor1",			"floor1",				"floor1",			"wall_corner_bottom_left",	"wall_corner_bottom_right",	"floor1",		"floor1",	"floor1",	"floor1"],
-		["wall_side_mid_left",	"floor1",			"floor1",				"floor1",			"wall_middle",					"wall_middle",	"floor1",		"floor1",	"floor1",	"edge"],
-		["wall_side_mid_left",	"floor1",			"floor1",				"floor1",			"floor1",					"floor1",	"floor1",	"floor1",	"floor1",	null],
-		[null,					null,				null,					null,				"floor1",						"edge",	"floor1",	"floor1",	"floor1",	null],
-		[null,					null,				null,					null,				"floor4",			"floor1",	"floor1",	"floor1",	"floor1",	null],
-		[null,		null,		null,				null,			"floor1",		"floor1",	"floor1",	"floor1",	"floor1",	null],
-		[null,		"floor1",	"floor1",		"floor1",		"floor1",		"floor1",	"floor1",	"floor1",	"edge",		null],
-		["floor1",	"floor1",	"edge",			"edge",			"edge",			"floor1",	"floor1",	"floor1",	null,		null]
+		["wall_side_top_left",	"wall_top_middle",	"wall_top_middle",		"wall_top_middle",	"wall_side_top_right",		"wall_side_top_left",	"wall_top_middle",	"wall_top_middle",	"wall_top_middle",	"wall_top_middle", null],
+		["wall_side_mid_left",	"wall_middle",		"wall_variant1",		"wall_middle",		"wall_side_mid_right",		"wall_side_mid_left",	"wall_middle",	"wall_variant3",	"wall_middle",	"wall_middle", null],
+		["wall_side_mid_left",	"floor1",			"floor1",				"floor1",			"wall_corner_bottom_left",	"wall_corner_bottom_right",	"floor1",		"floor1",	"floor1",	"floor_ladder", null],
+		["wall_side_mid_left",	"floor1",			"floor1",				"floor1",			"wall_middle",					"wall_middle",	"floor1",		"floor1",	"floor1",	"floor5", null],
+		["wall_side_mid_left",	"floor1",			"floor1",				"floor1",			"floor1",					"floor1",	"floor1",	"floor1",	"floor1",	null, null],
+		[null,					null,				null,					null,				"floor1",						"edge",	"floor1",	"floor1",	"floor1",	null, null],
+		[null,					null,				null,					null,				"floor4",			"floor1",	"floor1",	"floor1",	"floor1",	null, null],
+		["wall_middle",		null,		null,				null,			"floor1",		"floor1",	"floor1",	"floor1",	"floor1",	null, null],
+		["floor1",		"floor1",	"floor1",		"floor1",		"floor1",		"floor1",	"floor1",	"floor1",	"edge",		null, null],
+		["floor1",	"floor1",	"wall_middle",			"wall_middle",			"wall_middle",			"floor1",	"floor1",	"floor1",	null,		null, null],
+		[null, null, null, null, null, null, null, null, null, null, null]
 	],
 	"tiles_top": [
-		[null, null, null, null, null, null, null, null, null, null],
-		[null, null, null, null, null, null, null, null, null, null],
-		[null, null, null, null, null, null, null, null, null, null],
-		[null, null, null, null, null, null, null, null, null, null],
-		[null, "wall_top_middle", "wall_top_middle", "wall_top_middle", null, null, null, null, null, null],
-		[null, null, null, "wall_inner_corner_t_top_right", null, null, "wall_inner_corner_t_top_right", null, null, null],
-		[null, null, null, null, null, null, null, null, null, null],
-		[null, null, null, null, null, null, null, null, null, null],
-		["wall_corner_bottom_right", null, null, null, null, null, null, null, null, null],
-		["wall_corner_bottom_left", null, null, null, null, "wall_top_middle", "wall_top_middle", "wall_top_middle", null, null]
+		[null, null, null, null, null, null, null, null, null, null, "wall_side_top_right"],
+		[null, null, null, null, null, null, null, null, null, null, "wall_side_mid_right"],
+		[null, null, null, null, null, null, null, null, null, null, "wall_side_mid_right"],
+		[null, null, null, null, null, null, null, null, null, "wall_top_middle", "wall_side_mid_right"],
+		[null, "wall_top_middle", "wall_top_middle", "wall_corner_top_right", null, null, null, null, null, "wall_side_mid_right", null],
+		[null, null, null, "wall_side_mid_left", null, null, null, null, null, "wall_side_mid_right", null],
+		["wall_top_left", "wall_top_middle", "wall_top_middle", "wall_corner_bottom_right", null, null, null, null, null, "wall_side_mid_right", null],
+		["wall_side_mid_right", "wall_middle", "wall_middle", "wall_middle", null, null, null, null, 												"wall_corner_bottom_right", 					null, null],
+		["wall_side_mid_right", "wall_side_top_left", "wall_top_middle", "wall_top_middle", "wall_top_middle", "wall_side_top_right", null, null, 	"wall_side_mid_right", null, null],
+		["wall_corner_bottom_left", "wall_corner_bottom_right", null, null, null, "wall_corner_bottom_left", "wall_top_middle", "wall_top_middle", 	"wall_side_mid_right", null, null],
+		["wall_middle", "wall_middle", null, null, null, "wall_middle", "wall_middle", "wall_middle", 												"wall_side_front_right", null, null]
 
 	],
 	"objects": {}
