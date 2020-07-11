@@ -282,6 +282,7 @@ document.addEventListener('DOMContentLoaded', function()
 
 			this.lights.enable().setAmbientColor(0x333333);
 			this.lights.addLight(0, 0, 200).setColor(0xffffff).setIntensity(2);
+			this.lights.addLight(200, 200, 200).setColor(0xffffff).setIntensity(2);
 
 			state.graph = makegraph(level, tilegroups);
 			const node_spawn = state.graph[3][2];
