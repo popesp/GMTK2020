@@ -169,10 +169,12 @@ document.addEventListener('DOMContentLoaded', function()
 			for(let index_row = 0; index_row < level.tiles.length; ++index_row)
 			{
 				const row = level.tiles[index_row];
+				const row_overlay = level.tiles[index_row];
 
 				for(let index_col = 0; index_col < row.length; ++index_col)
 				{
 					const tile = row[index_col];
+					const tile_overlay = row[index_col];
 
 					const tilegroup = tilegroups[tile];
 
@@ -180,6 +182,7 @@ document.addEventListener('DOMContentLoaded', function()
 					const y = YOFFSET_LEVEL + index_row*HEIGHT_TILE;
 
 					const sprite = this.add.sprite(x, y, 'atlas', tile).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
+					//const sprite_overlay = this.add.sprite(x, y, 'atlas', tile_overlay).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
 					if(staticgroups[tilegroup])
 						staticgroups[tilegroup].add(sprite);
 
