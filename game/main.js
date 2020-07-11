@@ -10,7 +10,8 @@ const HEIGHT_TILE = 16;
 const THINK_SPEED = 0.05;
 
 const LIGHT_INTENSITY = 2;
-const LIGHT_RADIUS = 60;
+const DIM_RADIUS = 60;
+const LIT_RADIUS = 32;
 
 const WIN_RADIUS = 40;
 
@@ -117,6 +118,7 @@ function lightgraph(graph, sconces)
 				continue;
 
 			node.lit = false;
+			node.dim = false;
 			for(let index_sconce = 0; index_sconce < sconces.length; ++index_sconce)
 			{
 				const sconce = sconces[index_sconce];
@@ -126,11 +128,10 @@ function lightgraph(graph, sconces)
 				const dx = sconce.light.x - node.x;
 				const dy = sconce.light.y - node.y;
 
-				if(dx*dx + dy*dy < LIGHT_RADIUS*LIGHT_RADIUS)
-				{
+				if(dx*dx + dy*dy < LIT_RADIUS*LIT_RADIUS)
 					node.lit = true;
-					break;
-				}
+				if(dx*dx + dy*dy < DIM_RADIUS*DIM_RADIUS)
+					node.dim = true;
 			}
 		}
 	}
@@ -192,11 +193,6 @@ function reconstruct(from, current)
 
 function findpath(start, goal, dummy_mood)
 {
-	// if(dummy_mood === 'scared')
-	// {
-	// 	wut
-	// 	return;
-	// }
 	const openset = [start];
 	const from = new Map();
 
@@ -309,43 +305,43 @@ const mood_handler = {
 			}
 		}
 
-		if(!state.node_current.lit)
+		if(!state.node_current.dim)
 			changemood(state, 'scared');
 	},
 	scared: function(state)
 	{
-		// if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random() * 60) < 1)
-		// {
-		// 	let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
-		// 	let distance = 1;
-		// 	while(distance < 9)
-		// 	{
-		// 		end_node = end_node.paths[Math.floor(Math.random() * end_node.paths.length)];
-		// 		distance++;
-		// 	}
-		// 	if(end_node !== state.node_current)
-		// 	{
-		// 		state.actionqueue.push({
-		// 			type: 'move',
-		// 			node_destination: end_node,
-		// 			index_path: 0,
-		// 			progress_path: 0,
-		// 			path: null
-		// 		});
-		// 	}
-		// }
-
 		if(state.node_current.lit)
 			changemood(state, 'calm');
 		else
 		{
 			const destination = closestlit(state.node_current, state.graph);
-			if(state.action_current === null || (state.action_current.type === 'move' && destination !== null && destination !== state.action_current.node_destination))
+			if(destination !== null && (state.action_current === null || (state.action_current.type === 'move' && destination !== state.action_current.node_destination)))
 			{
 				state.action_current = null;
 				state.actionqueue.push({
 					type: 'move',
 					node_destination: destination,
+					index_path: 0,
+					progress_path: 0,
+					path: null
+				});
+			}
+		}
+
+		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random() * 60) < 1)
+		{
+			let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
+			let distance = 1;
+			while(distance < 9)
+			{
+				end_node = end_node.paths[Math.floor(Math.random() * end_node.paths.length)];
+				distance++;
+			}
+			if(end_node !== state.node_current)
+			{
+				state.actionqueue.push({
+					type: 'move',
+					node_destination: end_node,
 					index_path: 0,
 					progress_path: 0,
 					path: null
@@ -498,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function()
 					const y = YOFFSET_LEVEL + object.row*HEIGHT_TILE;
 
 					const sconce = {
-						light: this.lights.addLight(x, y + HEIGHT_TILE/2, LIGHT_RADIUS).setColor(0xffe8b0).setIntensity(object.lit ? LIGHT_INTENSITY : 0),
+						light: this.lights.addLight(x, y + HEIGHT_TILE/2, DIM_RADIUS).setColor(0xffe8b0).setIntensity(object.lit ? LIGHT_INTENSITY : 0),
 						sprite: this.add.sprite(x, y, 'atlas', 'sconce_unlit').setPipeline('Light2D').anims.play(object.lit ? 'sconce_lit' : 'sconce_unlit'),
 						lit: object.lit
 					};
@@ -572,14 +568,7 @@ document.addEventListener('DOMContentLoaded', function()
 					sprite.setPipeline('Light2D');
 				}
 			}
-			// 9 - 2
-			state.actionqueue.push({
-				type: 'move',
-				node_destination: state.graph[2][9],
-				index_path: 0,
-				progress_path: 0,
-				path: null
-			});
+
 			this.physics.add.collider(state.dummy, staticgroups.walls);
 		},
 
