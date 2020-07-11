@@ -1,6 +1,14 @@
 {
     "frames": [
         {
+            "filename": null,
+            "frame": {"x":0,"y":0,"w":16,"h":16},
+            "rotated": false,
+            "trimmed": false,
+            "spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+            "sourceSize": {"w":16,"h":16}
+        },
+        {
             "filename": "wall_top_left",
             "frame": {"x":16,"y":0,"w":16,"h":16},
             "rotated": false,
@@ -30,7 +38,8 @@
             "rotated": false,
             "trimmed": false,
             "spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
-            "sourceSize": {"w":16,"h":16}
+            "sourceSize": {"w":16,"h":16},
+            "pivot": {"x":0.5,"y":0.5}
         },
         {
             "filename": "wall_middle",
@@ -38,7 +47,8 @@
             "rotated": false,
             "trimmed": false,
             "spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
-            "sourceSize": {"w":16,"h":16}
+            "sourceSize": {"w":16,"h":16},
+            "pivot": {"x":0.5,"y":0.5}
         },
         {
             "filename": "wall_right",
@@ -46,7 +56,8 @@
             "rotated": false,
             "trimmed": false,
             "spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
-            "sourceSize": {"w":16,"h":16}
+            "sourceSize": {"w":16,"h":16},
+            "pivot": {"x":0.5,"y":0.5}
         },
         {
             "filename": "wall_variant1",
