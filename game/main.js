@@ -10,8 +10,9 @@ const HEIGHT_TILE = 16;
 const THINK_SPEED = 0.05;
 
 const LIGHT_INTENSITY = 2;
-const DIM_RADIUS = 60;
-const LIT_RADIUS = 32;
+const DIM_RADIUS = 48;
+const LIT_RADIUS = 24;
+const LIGHT_RADIUS = 60;
 
 const WIN_RADIUS = 40;
 
@@ -125,8 +126,8 @@ function lightgraph(graph, sconces)
 				if(!sconce.lit)
 					continue;
 
-				const dx = sconce.light.x - node.x;
-				const dy = sconce.light.y - node.y;
+				const dx = sconce.x - node.x;
+				const dy = sconce.y - node.y;
 
 				if(dx*dx + dy*dy < LIT_RADIUS*LIT_RADIUS)
 					node.lit = true;
@@ -450,6 +451,8 @@ document.addEventListener('DOMContentLoaded', function()
 				frameRate: 12,
 				repeat: -1
 			});
+
+			// sconces
 			this.anims.create({
 				key: 'sconce_unlit',
 				frames: [{key: 'atlas', frame: 'sconce_unlit'}],
@@ -458,6 +461,17 @@ document.addEventListener('DOMContentLoaded', function()
 			this.anims.create({
 				key: 'sconce_lit',
 				frames: this.anims.generateFrameNames('atlas', {prefix: 'sconce_lit', end: 2}),
+				frameRate: 3,
+				repeat: -1
+			});
+			this.anims.create({
+				key: 'sconce_unlit_outline',
+				frames: [{key: 'atlas', frame: 'sconce_unlit_outline'}],
+				frameRate: 1
+			});
+			this.anims.create({
+				key: 'sconce_lit_outline',
+				frames: this.anims.generateFrameNames('atlas', {prefix: 'sconce_lit_outline', end: 2}),
 				frameRate: 3,
 				repeat: -1
 			});
@@ -494,18 +508,16 @@ document.addEventListener('DOMContentLoaded', function()
 					const y = YOFFSET_LEVEL + object.row*HEIGHT_TILE;
 
 					const sconce = {
-						light: this.lights.addLight(x, y + HEIGHT_TILE/2, DIM_RADIUS).setColor(0xffe8b0).setIntensity(object.lit ? LIGHT_INTENSITY : 0),
+						light: this.lights.addLight(x, y + HEIGHT_TILE/2, LIGHT_RADIUS).setColor(0xffe8b0).setIntensity(object.lit ? LIGHT_INTENSITY : 0),
 						sprite: this.add.sprite(x, y, 'atlas', 'sconce_unlit').setPipeline('Light2D').anims.play(object.lit ? 'sconce_lit' : 'sconce_unlit'),
-						lit: object.lit
+						lit: object.lit,
+						x: x,
+						y: y + HEIGHT_TILE
 					};
 					state.sconces.push(sconce);
 
 					sconce.sprite.setInteractive({
 						useHandCursor: true
-					});
-					sconce.sprite.on('pointerdown', function()
-					{
-						this.setTint(0xff0000);
 					});
 					sconce.sprite.on('pointerup', function()
 					{
@@ -513,8 +525,7 @@ document.addEventListener('DOMContentLoaded', function()
 						{
 							sconce.lit = true;
 							sconce.light.setIntensity(LIGHT_INTENSITY);
-							sconce.sprite.anims.remove('sconce_unlit');
-							sconce.sprite.anims.play('sconce_lit');
+							sconce.sprite.anims.play('sconce_lit_outline');
 
 							state.ux_stored_light.sprites[--state.ux_stored_light.available].anims.remove('sconce_lit');
 							state.ux_stored_light.sprites[state.ux_stored_light.available].anims.play('sconce_unlit');
@@ -523,8 +534,7 @@ document.addEventListener('DOMContentLoaded', function()
 						{
 							sconce.lit = false;
 							sconce.light.setIntensity(0);
-							this.anims.remove('sconce_lit');
-							this.anims.play('sconce_unlit');
+							sconce.sprite.anims.play('sconce_unlit_outline');
 
 							state.ux_stored_light.sprites[state.ux_stored_light.available].anims.play('sconce_lit');
 							state.ux_stored_light.sprites[state.ux_stored_light.available++].anims.remove('sconce_unlit');
@@ -532,9 +542,13 @@ document.addEventListener('DOMContentLoaded', function()
 
 						lightgraph(state.graph, state.sconces);
 					});
+					sconce.sprite.on('pointermove', function()
+					{
+						sconce.sprite.anims.play(sconce.lit ? 'sconce_lit_outline' : 'sconce_unlit_outline');
+					});
 					sconce.sprite.on('pointerout', function()
 					{
-						this.clearTint();
+						sconce.sprite.anims.play(sconce.lit ? 'sconce_lit' : 'sconce_unlit');
 					});
 				}
 			}

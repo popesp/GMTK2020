@@ -387,6 +387,18 @@
 		{
 			"filename": "sconce_lit2",
 			"frame": {"x": 336, "y": 176, "w": 16, "h": 32}
+		},
+		{
+			"filename": "sconce_unlit_outline",
+			"frame": {"x": 304, "y": 208, "w": 16, "h": 32}
+		},
+		{
+			"filename": "sconce_lit_outline1",
+			"frame": {"x": 320, "y": 208, "w": 16, "h": 32}
+		},
+		{
+			"filename": "sconce_lit_outline2",
+			"frame": {"x": 336, "y": 208, "w": 16, "h": 32}
 		}
 	]
 }
