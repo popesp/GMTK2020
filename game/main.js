@@ -221,6 +221,7 @@ document.addEventListener('DOMContentLoaded', function()
 
 	const state = {
 		graph: null,
+		sconces: [],
 		// false: left, true: right
 		direction_dummy: 0,
 		node_current: null,
@@ -335,7 +336,36 @@ document.addEventListener('DOMContentLoaded', function()
 					sprite.anims.play(object.lit ? 'sconce_lit' : 'sconce_unlit');
 
 					sprite.setPipeline('Light2D');
-					this.lights.addLight(x, y, 80).setColor(0xffe8b0).setIntensity(object.lit ? 2 : 0);
+					const sconce = this.lights.addLight(x, y, 80).setColor(0xffe8b0);
+					sconce.setIntensity(object.lit ? 2 : 0);
+					state.sconces.push(sconce);
+
+					sprite.setInteractive({
+						useHandCursor: true
+					});
+					sprite.on('pointerdown', function(pointer)
+					{
+						this.setTint(0xff0000);
+					});
+					sprite.on('pointerup', function(pointer)
+					{
+						if(sconce.intensity === 0)
+						{
+							sconce.setIntensity(2);
+							this.anims.remove('sconce_unlit');
+							this.anims.play('sconce_lit');
+						}
+						else
+						{
+							sconce.setIntensity(0);
+							this.anims.remove('sconce_lit');
+							this.anims.play('sconce_unlit');
+						}
+					});
+					sprite.on('pointerout', function(pointer)
+					{
+						this.clearTint();
+					});
 				}
 			}
 
