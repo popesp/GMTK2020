@@ -443,7 +443,18 @@ document.addEventListener('DOMContentLoaded', function()
 			// 	this.clearTint();
 			// });
 
+			state.dummy_mood_text = this.add.text(125, 0, '', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
 			this.add.text(250, 0, 'Upper Dungeon - 1', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
+		},
+		update: function()
+		{
+			let mood_text;
+			if(state.dummy_mood === 0)
+				mood_text = 'Bored';
+			else if(state.dummy_mood === 1)
+				mood_text = 'Scared';
+
+			state.dummy_mood_text.setText(mood_text);
 		}
 	});
 
