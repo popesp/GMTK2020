@@ -1,7 +1,8 @@
 const WIDTH_CANVAS = 800;
 const HEIGHT_CANVAS = 600;
 
-const SPEED_DUMMY = 30;
+// normalized tile units per frame
+const SPEED_DUMMY = 0.02;
 
 const XOFFSET_LEVEL = 32;
 const YOFFSET_LEVEL = 32;
@@ -17,13 +18,129 @@ const tilegroups = {
 };
 
 
+function makegraph(level, tilegroups)
+{
+	const nodes = level.tiles.map(function(row, index_row)
+	{
+		return row.map(function(tile, index_col)
+		{
+			if(tilegroups[tile] === 'below')
+				return {
+					index_row,
+					index_col,
+					paths: []
+				};
+			return null;
+		});
+	});
+
+	nodes.forEach(function(row)
+	{
+		row.forEach(function(node)
+		{
+			if(node === null)
+				return;
+
+			const nodes_adjacent = [];
+			if(node.index_row > 0 && nodes[node.index_row - 1][node.index_col] !== null)
+				nodes_adjacent.push(nodes[node.index_row - 1][node.index_col]);
+			if(node.index_row < nodes.length - 1 && nodes[node.index_row + 1][node.index_col] !== null)
+				nodes_adjacent.push(nodes[node.index_row + 1][node.index_col]);
+			if(node.index_col > 0 && nodes[node.index_row][node.index_col - 1] !== null)
+				nodes_adjacent.push(nodes[node.index_row][node.index_col - 1]);
+			if(node.index_col < row.length - 1 && nodes[node.index_row][node.index_col + 1] !== null)
+				nodes_adjacent.push(nodes[node.index_row][node.index_col + 1]);
+
+			nodes_adjacent.forEach(function(node_adjacent)
+			{
+				if(node_adjacent !== null)
+					node.paths.push(node_adjacent);
+			});
+		});
+	});
+
+	return nodes;
+}
+
+function heuristic(start, goal)
+{
+	const dx = goal.index_col - start.index_col;
+	const dy = goal.index_row - start.index_row;
+
+	return Math.sqrt(dx*dx + dy*dy);
+}
+
+function reconstruct(from, current)
+{
+	const path = [current];
+
+	while(from.has(current))
+	{
+		current = from.get(current);
+		path.unshift(current);
+	}
+
+	return path;
+}
+
+function findpath(start, goal)
+{
+	const openset = [start];
+	const from = new Map();
+
+	const score_g = new Map();
+	score_g.set(start, 0);
+
+	const score_f = new Map();
+	score_f.set(start, heuristic(start, goal));
+
+	while(openset.length > 0)
+	{
+		const current = openset.shift();
+		if(current === goal)
+			return reconstruct(from, current);
+
+		for(let index_path = 0; index_path < current.paths.length; ++index_path)
+		{
+			const node_adj = current.paths[index_path];
+
+			const score_g_temp = score_g.get(current) + 1;
+			const score_g_adj = score_g.has(node_adj) ? score_g.get(node_adj) : Infinity;
+			if(score_g_temp < score_g_adj)
+			{
+				from.set(node_adj, current);
+				score_g.set(node_adj, score_g_temp);
+
+				const score_f_adj = score_g_temp + heuristic(node_adj, goal);
+				score_f.set(node_adj, score_f_adj);
+
+				// TODO(shawn): maybe implement heap for quicker insertion
+				let index_node;
+				for(index_node = 0; index_node < openset.length; ++index_node)
+					if(score_f_adj < score_f.get(openset[index_node]))
+						break;
+
+				openset.splice(index_node, 0, node_adj);
+			}
+		}
+	}
+
+	return [];
+}
+
+
 document.addEventListener('DOMContentLoaded', function()
 {
 	const dom_container = document.getElementById('container');
 
-	// 0: left, 1: right
-	const gamestate = {
-		direction_dummy: 0
+	const state = {
+		// false: left, true: right
+		direction_dummy: 0,
+		path_current: null,
+
+		// local movement state
+		index_path: 0,
+		progress_path: 0
 	};
 
 	const game = new Phaser.Game({
@@ -77,6 +194,14 @@ document.addEventListener('DOMContentLoaded', function()
 					}
 				}
 
+				const graph = makegraph(level, tilegroups);
+
+				const node_spawn = graph[0][0];
+				state.node_from = node_spawn;
+
+				state.node_destination = graph[9][0];
+				state.path_current = findpath(node_spawn, state.node_destination);
+
 				// characters
 				this.anims.create({
 					key: 'dummy_idle',
@@ -90,8 +215,8 @@ document.addEventListener('DOMContentLoaded', function()
 					frameRate: 8,
 					repeat: -1
 				});
-				gamestate.dummy = this.physics.add.sprite(64, 64, 'tileset_animation').setOrigin(0.5, 1).play('dummy_run');
-				gamestate.dummy.body.setSize(12, 12).setOffset(2, 20);
+				state.dummy = this.physics.add.sprite(XOFFSET_LEVEL + node_spawn.index_col*16, YOFFSET_LEVEL + node_spawn.index_row*16, 'tileset_animation').setOrigin(0.5, 1).play('dummy_run');
+				state.dummy.body.setSize(12, 12).setOffset(2, 20);
 
 				this.anims.create({
 					key: 'damsel',
@@ -102,46 +227,84 @@ document.addEventListener('DOMContentLoaded', function()
 				this.add.sprite(232, 150, 'tileset_animation').setOrigin(0.5, 1).play('damsel');
 
 
-				this.physics.add.collider(gamestate.dummy, staticgroups.walls);
+				this.physics.add.collider(state.dummy, staticgroups.walls);
 
 
 				// keyboard controls
-				gamestate.cursors = this.input.keyboard.createCursorKeys();
+				state.cursors = this.input.keyboard.createCursorKeys();
 			},
 			update: function()
 			{
-				let moving = false;
-				if(gamestate.cursors.left.isDown)
+				if(state.path_current)
 				{
-					gamestate.direction_dummy = 0;
-					gamestate.dummy.setVelocityX(-SPEED_DUMMY);
-					moving = true;
-				}
-				else if(gamestate.cursors.right.isDown)
-				{
-					gamestate.direction_dummy = 1;
-					gamestate.dummy.setVelocityX(SPEED_DUMMY);
-					moving = true;
+					state.progress_path += SPEED_DUMMY;
+					while(state.progress_path > 1)
+					{
+						state.index_path++;
+						if(state.index_path === state.path_current.length - 1)
+						{
+							const node_end = state.path_current[state.index_path];
+
+							state.dummy.setPosition(XOFFSET_LEVEL + 16*node_end.index_col, YOFFSET_LEVEL + 16*node_end.index_row);
+							state.path_current = null;
+							state.index_path = 0;
+							state.progress_path = 0;
+						}
+						else
+							state.progress_path -= 1;
+					}
+
+					if(state.path_current)
+					{
+						const node_from = state.path_current[state.index_path];
+						const node_to = state.path_current[state.index_path + 1];
+
+						if(node_from.index_col !== node_to.index_col)
+							state.direction_dummy = node_to.index_col < node_from.index_col;
+
+						const x = Math.floor(XOFFSET_LEVEL + 16*(node_from.index_col*(1 - state.progress_path) + node_to.index_col*state.progress_path));
+						const y = Math.floor(YOFFSET_LEVEL + 16*(node_from.index_row*(1 - state.progress_path) + node_to.index_row*state.progress_path));
+
+						state.dummy.setPosition(x, y);
+					}
 				}
 				else
-					gamestate.dummy.setVelocityX(0);
-
-				if(gamestate.cursors.up.isDown)
 				{
-					gamestate.dummy.setVelocityY(-SPEED_DUMMY);
-					moving = true;
+					state.dummy.setVelocityX(0);
+					state.dummy.setVelocityY(0);
+					state.dummy.anims.play('dummy_idle', true);
 				}
-				else if(gamestate.cursors.down.isDown)
-				{
-					gamestate.dummy.setVelocityY(SPEED_DUMMY);
-					moving = true;
-				}
-				else
-					gamestate.dummy.setVelocityY(0);
 
-				gamestate.dummy.anims.play(moving ? 'dummy_run' : 'dummy_idle', true);
+				// let moving = false;
+				// if(state.cursors.left.isDown)
+				// {
+				// 	state.direction_dummy = 0;
+				// 	state.dummy.setVelocityX(-SPEED_DUMMY);
+				// 	moving = true;
+				// }
+				// else if(state.cursors.right.isDown)
+				// {
+				// 	state.direction_dummy = 1;
+				// 	state.dummy.setVelocityX(SPEED_DUMMY);
+				// 	moving = true;
+				// }
+				// else
+				// 	state.dummy.setVelocityX(0);
 
-				gamestate.dummy.setFlipX(gamestate.direction_dummy === 0);
+				// if(state.cursors.up.isDown)
+				// {
+				// 	state.dummy.setVelocityY(-SPEED_DUMMY);
+				// 	moving = true;
+				// }
+				// else if(state.cursors.down.isDown)
+				// {
+				// 	state.dummy.setVelocityY(SPEED_DUMMY);
+				// 	moving = true;
+				// }
+				// else
+				// 	state.dummy.setVelocityY(0);
+
+				state.dummy.setFlipX(state.direction_dummy);
 			}
 		}
 	});

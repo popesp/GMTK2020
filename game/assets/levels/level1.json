@@ -6,7 +6,7 @@
 		["floor1",	"floor1",	"floor1",		"floor1",		"floor1",		"floor1",	"edge",		"floor1",	"floor1",	"floor1"],
 		["edge",	"floor1",	"floor1",		"edge",			"floor1",		"floor1",	null,		"floor1",	"floor1",	"edge"],
 		[null,		"floor1",	"edge",			null,			"edge",			"floor1",	"floor1",	"floor1",	"floor1",	null],
-		[null,		"edge",		null,			null,			null,			"floor1",	"floor1",	"floor1",	"floor1",	null],
+		["floor1",	"edge",		null,			null,			null,			"floor1",	"floor1",	"floor1",	"floor1",	null],
 		[null,		null,		null,			null,			null,			"floor1",	"floor1",	"floor1",	"floor1",	null],
 		[null,		null,		null,			null,			"floor1",		"floor1",	"floor1",	"floor1",	"floor1",	null],
 		[null,		"floor1",	"floor1",		"floor1",		"floor1",		"floor1",	"floor1",	"floor1",	"edge",		null],
