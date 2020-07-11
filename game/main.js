@@ -282,6 +282,7 @@ document.addEventListener('DOMContentLoaded', function()
 
 			this.lights.enable().setAmbientColor(0x333333);
 			this.lights.addLight(0, 0, 200).setColor(0xffffff).setIntensity(2);
+			this.lights.addLight(200, 200, 200).setColor(0xffffff).setIntensity(2);
 
 			state.graph = makegraph(level, tilegroups);
 			const node_spawn = state.graph[3][2];
@@ -298,6 +299,18 @@ document.addEventListener('DOMContentLoaded', function()
 				key: 'dummy_run',
 				frames: this.anims.generateFrameNames('atlas', {prefix: 'knight_run', end: 4}),
 				frameRate: 8,
+				repeat: -1
+			});
+			this.anims.create({
+				key: 'dummy_idle_scared',
+				frames: this.anims.generateFrameNames('atlas', {prefix: 'knight_idle', end: 4}),
+				frameRate: 8,
+				repeat: -1
+			});
+			this.anims.create({
+				key: 'dummy_run_scared',
+				frames: this.anims.generateFrameNames('atlas', {prefix: 'knight_run', end: 4}),
+				frameRate: 12,
 				repeat: -1
 			});
 			state.dummy = this.physics.add.sprite(XOFFSET_LEVEL + node_spawn.index_col*WIDTH_TILE, YOFFSET_LEVEL + node_spawn.index_row*HEIGHT_TILE, 'atlas').setOrigin(0.5, 1);
@@ -379,13 +392,13 @@ document.addEventListener('DOMContentLoaded', function()
 							state.dummy.setPosition(x, y);
 						}
 
-						state.dummy.anims.play('dummy_run', true);
+						state.dummy.anims.play(state.dummy_mood === 0 ? 'dummy_run' : 'dummy_run_scared', true);
 					}
 				}
 			}
 			else
 			{
-				state.dummy.anims.play('dummy_idle', true);
+				state.dummy.anims.play(state.dummy_mood === 0 ? 'dummy_idle' : 'dummy_idle_scared', true);
 
 				if(state.actionqueue.length > 0)
 					state.action_current = state.actionqueue.shift();
