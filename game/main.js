@@ -242,7 +242,7 @@ const mood_handler = {
 	calm: function(state)
 	{
 		// randomly decide to set a new destination when calm
-		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random()*20) < 1)
+		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random()*240) < 1)
 		{
 			let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
 			let distance = 1;
