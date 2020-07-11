@@ -197,6 +197,7 @@ document.addEventListener('DOMContentLoaded', function()
 
 			this.lights.enable().setAmbientColor(0x333333);
 			this.lights.addLight(0, 0, 200).setColor(0xffffff).setIntensity(2);
+			this.lights.addLight(200, 200, 200).setColor(0xffffff).setIntensity(2);
 
 			const graph = makegraph(level, tilegroups);
 
@@ -379,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function()
 		physics: {
 			default: 'arcade',
 			arcade: {
-				debug: true,
+				// debug: true,
 				fps: 30
 			}
 		},
