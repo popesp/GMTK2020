@@ -1,6 +1,21 @@
 const WIDTH_CANVAS = 800;
 const HEIGHT_CANVAS = 600;
 
+const SPEED_DUMMY = 30;
+
+const XOFFSET_LEVEL = 32;
+const YOFFSET_LEVEL = 32;
+
+
+const tilegroups = {
+	null: 'walls',
+	'floor1': 'below',
+	'wall_left': 'walls',
+	'wall_middle': 'walls',
+	'wall_right': 'walls',
+	'edge': 'walls'
+};
+
 
 document.addEventListener('DOMContentLoaded', function()
 {
@@ -19,7 +34,11 @@ document.addEventListener('DOMContentLoaded', function()
 		height: HEIGHT_CANVAS/2,
 		resolution: 5,
 		physics: {
-			default: 'arcade'
+			default: 'arcade',
+			arcade: {
+				debug: true,
+				fps: 30
+			}
 		},
 		scene: {
 			preload: function()
@@ -32,6 +51,10 @@ document.addEventListener('DOMContentLoaded', function()
 			},
 			create: function()
 			{
+				const staticgroups = {
+					walls: this.physics.add.staticGroup()
+				};
+
 				// render level
 				const level = this.cache.json.get('level1');
 				for(let index_row = 0; index_row < level.tiles.length; ++index_row)
@@ -42,8 +65,15 @@ document.addEventListener('DOMContentLoaded', function()
 					{
 						const tile = row[index_col];
 
-						if(tile)
-							this.add.tileSprite(index_col*16, index_row*16, 16, 16, 'atlas', tile).setOrigin(0, 0);
+						const tilegroup = tilegroups[tile];
+
+						const x = XOFFSET_LEVEL + index_col*16;
+						const y = YOFFSET_LEVEL + index_row*16;
+
+						if(staticgroups[tilegroup])
+							staticgroups[tilegroup].create(x, y, tile ? 'atlas' : null, tile).setDisplaySize(16, 16).refreshBody();
+						else
+							this.add.sprite(x, y, tile ? 'atlas' : null, tile).setDisplaySize(16, 16);
 					}
 				}
 
@@ -60,7 +90,8 @@ document.addEventListener('DOMContentLoaded', function()
 					frameRate: 8,
 					repeat: -1
 				});
-				gamestate.dummy = this.physics.add.sprite(200, 150, 'dummy').play('dummy_run');
+				gamestate.dummy = this.physics.add.sprite(64, 64, 'tileset_animation').setOrigin(0.5, 1).play('dummy_run');
+				gamestate.dummy.body.setSize(12, 12).setOffset(2, 20);
 
 				this.anims.create({
 					key: 'damsel',
@@ -68,7 +99,10 @@ document.addEventListener('DOMContentLoaded', function()
 					frameRate: 8,
 					repeat: -1
 				});
-				this.add.sprite(232, 150, 'damsel').play('damsel');
+				this.add.sprite(232, 150, 'tileset_animation').setOrigin(0.5, 1).play('damsel');
+
+
+				this.physics.add.collider(gamestate.dummy, staticgroups.walls);
 
 
 				// keyboard controls
@@ -76,36 +110,36 @@ document.addEventListener('DOMContentLoaded', function()
 			},
 			update: function()
 			{
+				let moving = false;
 				if(gamestate.cursors.left.isDown)
 				{
 					gamestate.direction_dummy = 0;
-					gamestate.dummy.setX(gamestate.dummy.getX() - 1);
-					gamestate.dummy.anims.play('dummy_run', true);
+					gamestate.dummy.setVelocityX(-SPEED_DUMMY);
+					moving = true;
 				}
 				else if(gamestate.cursors.right.isDown)
 				{
 					gamestate.direction_dummy = 1;
-					gamestate.dummy.setVelocityX(64);
-					gamestate.dummy.anims.play('dummy_run', true);
+					gamestate.dummy.setVelocityX(SPEED_DUMMY);
+					moving = true;
 				}
 				else
-				{
 					gamestate.dummy.setVelocityX(0);
-					gamestate.dummy.anims.play('dummy_idle', true);
-				}
 
 				if(gamestate.cursors.up.isDown)
 				{
-					gamestate.dummy.setVelocityY(-64);
-					gamestate.dummy.anims.play('dummy_run', true);
+					gamestate.dummy.setVelocityY(-SPEED_DUMMY);
+					moving = true;
 				}
 				else if(gamestate.cursors.down.isDown)
 				{
-					gamestate.dummy.setVelocityY(64);
-					gamestate.dummy.anims.play('dummy_run', true);
+					gamestate.dummy.setVelocityY(SPEED_DUMMY);
+					moving = true;
 				}
 				else
 					gamestate.dummy.setVelocityY(0);
+
+				gamestate.dummy.anims.play(moving ? 'dummy_run' : 'dummy_idle', true);
 
 				gamestate.dummy.setFlipX(gamestate.direction_dummy === 0);
 			}
