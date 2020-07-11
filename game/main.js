@@ -2,7 +2,7 @@ const WIDTH_CANVAS = 800;
 const HEIGHT_CANVAS = 600;
 
 // normalized tile units per frame
-const SPEED_DUMMY = 0.02;
+const SPEED_DUMMY = 0.03;
 
 const XOFFSET_LEVEL = 32;
 const YOFFSET_LEVEL = 32;
@@ -136,11 +136,10 @@ document.addEventListener('DOMContentLoaded', function()
 	const state = {
 		// false: left, true: right
 		direction_dummy: 0,
-		path_current: null,
+		node_current: null,
 
-		// local movement state
-		index_path: 0,
-		progress_path: 0
+		actionqueue: [],
+		action_current: null
 	};
 
 	const game = new Phaser.Game({
@@ -197,16 +196,28 @@ document.addEventListener('DOMContentLoaded', function()
 				const graph = makegraph(level, tilegroups);
 
 				const node_spawn = graph[0][0];
-				state.node_from = node_spawn;
+				state.node_current = node_spawn;
 
-				state.node_destination = graph[9][0];
-				state.path_current = findpath(node_spawn, state.node_destination);
+				state.actionqueue.push({
+					type: 'move',
+					node_destination: graph[9][0],
+					index_path: 0,
+					progress_path: 0,
+					path: null
+				});
+				state.actionqueue.push({
+					type: 'move',
+					node_destination: graph[2][9],
+					index_path: 0,
+					progress_path: 0,
+					path: null
+				});
 
 				// characters
 				this.anims.create({
 					key: 'dummy_idle',
 					frames: this.anims.generateFrameNumbers('tileset_animation', {start: 72, end: 75}),
-					frameRate: 8,
+					frameRate: 6,
 					repeat: -1
 				});
 				this.anims.create({
@@ -235,44 +246,57 @@ document.addEventListener('DOMContentLoaded', function()
 			},
 			update: function()
 			{
-				if(state.path_current)
+				const action = state.action_current;
+
+				// if idle, perform next action when applicable
+				if(action !== null)
 				{
-					state.progress_path += SPEED_DUMMY;
-					while(state.progress_path > 1)
+					if(action.type === 'move')
 					{
-						state.index_path++;
-						if(state.index_path === state.path_current.length - 1)
+						if(action.path === null)
+							action.path = findpath(state.node_current, action.node_destination);
+
+						action.progress_path += SPEED_DUMMY;
+						while(action.progress_path > 1)
 						{
-							const node_end = state.path_current[state.index_path];
+							action.index_path++;
+							if(action.index_path === action.path.length - 1)
+							{
+								const node_end = action.path[action.index_path];
 
-							state.dummy.setPosition(XOFFSET_LEVEL + 16*node_end.index_col, YOFFSET_LEVEL + 16*node_end.index_row);
-							state.path_current = null;
-							state.index_path = 0;
-							state.progress_path = 0;
+								state.dummy.setPosition(XOFFSET_LEVEL + 16*node_end.index_col, YOFFSET_LEVEL + 16*node_end.index_row);
+								state.node_current = node_end;
+								state.action_current = null;
+							}
+							else
+								action.progress_path -= 1;
 						}
-						else
-							state.progress_path -= 1;
-					}
 
-					if(state.path_current)
-					{
-						const node_from = state.path_current[state.index_path];
-						const node_to = state.path_current[state.index_path + 1];
+						if(state.action_current !== null)
+						{
+							const node_from = action.path[action.index_path];
+							const node_to = action.path[action.index_path + 1];
 
-						if(node_from.index_col !== node_to.index_col)
-							state.direction_dummy = node_to.index_col < node_from.index_col;
+							if(node_from.index_col !== node_to.index_col)
+								state.direction_dummy = node_to.index_col < node_from.index_col;
 
-						const x = Math.floor(XOFFSET_LEVEL + 16*(node_from.index_col*(1 - state.progress_path) + node_to.index_col*state.progress_path));
-						const y = Math.floor(YOFFSET_LEVEL + 16*(node_from.index_row*(1 - state.progress_path) + node_to.index_row*state.progress_path));
+							state.node_current = action.progress_path < 0.5 ? node_from : node_to;
 
-						state.dummy.setPosition(x, y);
+							const x = Math.floor(XOFFSET_LEVEL + 16*(node_from.index_col*(1 - action.progress_path) + node_to.index_col*action.progress_path));
+							const y = Math.floor(YOFFSET_LEVEL + 16*(node_from.index_row*(1 - action.progress_path) + node_to.index_row*action.progress_path));
+
+							state.dummy.setPosition(x, y);
+						}
+
+						state.dummy.anims.play('dummy_run', true);
 					}
 				}
 				else
 				{
-					state.dummy.setVelocityX(0);
-					state.dummy.setVelocityY(0);
 					state.dummy.anims.play('dummy_idle', true);
+
+					if(state.actionqueue.length > 0)
+						state.action_current = state.actionqueue.shift();
 				}
 
 				// let moving = false;
