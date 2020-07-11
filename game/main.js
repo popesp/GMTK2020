@@ -10,7 +10,9 @@ const HEIGHT_TILE = 16;
 const THINK_SPEED = 0.05;
 
 const LIGHT_INTENSITY = 2;
-const LIGHT_RADIUS = 40;
+const LIGHT_RADIUS = 60;
+
+const WIN_RADIUS = 32;
 
 
 const tilegroups = {
@@ -24,6 +26,7 @@ const tilegroups = {
 	'floor7': 'below',
 	'floor8': 'below',
 	'floor_ladder': 'below',
+	'feature_lava_base1': 'below',
 	'wall_left': 'walls',
 	'wall_middle': 'walls',
 	'wall_right': 'walls',
@@ -38,25 +41,35 @@ const tilegroups = {
 	'wall_side_mid_right': 'walls',
 	'wall_corner_bottom_left': 'walls',
 	'wall_corner_bottom_right': 'walls',
+	'feature_lava_mid1': 'walls',
 	'edge': 'walls'
 };
 
 
-function makegraph(level, tilegroups)
+function makegraph(level, tilegroups, state)
 {
 	const nodes = level.tiles.map(function(row, index_row)
 	{
 		return row.map(function(tile, index_col)
 		{
-			if(tilegroups[tile] === 'below')
-				return {
-					index_row,
-					index_col,
-					x: XOFFSET_LEVEL + WIDTH_TILE*index_col,
-					y: YOFFSET_LEVEL + HEIGHT_TILE*index_row,
-					paths: []
-				};
-			return null;
+			if(tilegroups[tile] !== 'below')
+				return null;
+
+			const node = {
+				index_row,
+				index_col,
+				x: XOFFSET_LEVEL + WIDTH_TILE*index_col,
+				y: YOFFSET_LEVEL + HEIGHT_TILE*index_row,
+				paths: []
+			};
+
+			if(tile === 'floor_ladder')
+			{
+				node.win = true;
+				state.nodes_win.push(node);
+			}
+
+			return node;
 		});
 	});
 
@@ -220,9 +233,9 @@ function findpath(start, goal)
 }
 
 const mood_handler = {
-	bored: function(state)
+	calm: function(state)
 	{
-		// randomly decide to set a new destination when bored
+		// randomly decide to set a new destination when calm
 		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random()*240) < 1)
 		{
 			let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
@@ -245,6 +258,30 @@ const mood_handler = {
 					progress_path: 0,
 					path: null
 				});
+			}
+		}
+
+		for(let index_node_win = 0; index_node_win < state.nodes_win.length; ++index_node_win)
+		{
+			const node_win = state.nodes_win[index_node_win];
+
+			const dx = node_win.x - state.node_current.x;
+			const dy = node_win.y - state.node_current.y;
+
+			if(dx*dx + dy*dy <= WIN_RADIUS*WIN_RADIUS)
+			{
+				state.action_current = null;
+				state.actionqueue.push({
+					type: 'think',
+					duration: Math.random()*2 + 4
+				}, {
+					type: 'move',
+					node_destination: node_win,
+					index_path: 0,
+					progress_path: 0,
+					path: null
+				});
+				break;
 			}
 		}
 
@@ -274,10 +311,8 @@ const mood_handler = {
 		// 	}
 		// }
 
-		console.log(state.node_current);
-
 		if(state.node_current.lit)
-			changemood(state, 'bored');
+			changemood(state, 'calm');
 		else
 		{
 			const destination = closestlit(state.node_current, state.graph);
@@ -331,8 +366,11 @@ document.addEventListener('DOMContentLoaded', function()
 		// normalized tile units per frame
 		dummy_speed: 0.03,
 
-		dummy_mood: 'bored',
-		changing_moods: false
+		dummy_mood: 'calm',
+		changing_moods: false,
+
+		win: false,
+		nodes_win: []
 	};
 
 	const game_scene = new Phaser.Class({
@@ -349,6 +387,7 @@ document.addEventListener('DOMContentLoaded', function()
 			this.load.atlas('atlas', ['assets/tileset.png', 'assets/normal.png'], 'assets/tileset.json');
 			this.load.json('level0', 'assets/levels/level0.json');
 			this.load.json('level1', 'assets/levels/level1.json');
+			this.load.json('level2', 'assets/levels/level2.json');
 		},
 
 		create: function()
@@ -361,10 +400,9 @@ document.addEventListener('DOMContentLoaded', function()
 
 			const level = this.cache.json.get('level1');
 
-			state.graph = makegraph(level, tilegroups);
+			state.graph = makegraph(level, tilegroups, state);
 			const node_spawn = state.graph[3][2];
 			state.node_current = node_spawn;
-
 
 			// animations
 			this.anims.create({
@@ -435,7 +473,7 @@ document.addEventListener('DOMContentLoaded', function()
 					const y = YOFFSET_LEVEL + object.row*HEIGHT_TILE;
 
 					const sconce = {
-						light: this.lights.addLight(x, y, LIGHT_RADIUS).setColor(0xffe8b0).setIntensity(object.lit ? LIGHT_INTENSITY : 0),
+						light: this.lights.addLight(x, y + HEIGHT_TILE/2, LIGHT_RADIUS).setColor(0xffe8b0).setIntensity(object.lit ? LIGHT_INTENSITY : 0),
 						sprite: this.add.sprite(x, y, 'atlas', 'sconce_unlit').setPipeline('Light2D').anims.play(object.lit ? 'sconce_lit' : 'sconce_unlit'),
 						lit: object.lit
 					};
@@ -509,12 +547,28 @@ document.addEventListener('DOMContentLoaded', function()
 					sprite.setPipeline('Light2D');
 				}
 			}
-
-			// this.physics.add.collider(state.dummy, staticgroups.walls);
+			// 9 - 2
+			state.actionqueue.push({
+				type: 'move',
+				node_destination: state.graph[2][9],
+				index_path: 0,
+				progress_path: 0,
+				path: null
+			});
+			this.physics.add.collider(state.dummy, staticgroups.walls);
 		},
 
 		update: function()
 		{
+			if(state.node_current.win)
+			{
+				if(!state.win)
+				{
+					state.win = true;
+					this.add.text(120, 30, 'You Win POGGERS', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
+				}
+				return;
+			}
 			const action = state.action_current;
 
 			// if idle, perform next action when applicable
@@ -558,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function()
 							if(node_from.index_col !== node_to.index_col)
 								state.direction_dummy = node_to.index_col < node_from.index_col;
 
-							state.node_current = action.progress_path < 0.5 ? node_from : node_to;
+							state.node_current = node_from;
 
 							const x = Math.floor(XOFFSET_LEVEL + WIDTH_TILE*(node_from.index_col*(1 - action.progress_path) + node_to.index_col*action.progress_path));
 							const y = Math.floor(YOFFSET_LEVEL + HEIGHT_TILE*(node_from.index_row*(1 - action.progress_path) + node_to.index_row*action.progress_path));
@@ -588,8 +642,8 @@ document.addEventListener('DOMContentLoaded', function()
 
 			state.dummy.setFlipX(state.direction_dummy);
 
-			if(state.dummy_mood === 'bored')
-				mood_handler.bored(state);
+			if(state.dummy_mood === 'calm')
+				mood_handler.calm(state);
 			else if(state.dummy_mood === 'scared')
 				mood_handler.scared(state);
 		}
@@ -630,8 +684,8 @@ document.addEventListener('DOMContentLoaded', function()
 			let mood_text;
 			if(state.action_current !== null && state.action_current.type === 'think')
 				mood_text = '...';
-			else if(state.dummy_mood === 'bored')
-				mood_text = 'Bored';
+			else if(state.dummy_mood === 'calm')
+				mood_text = 'Calm';
 			else if(state.dummy_mood === 'scared')
 				mood_text = 'Scared';
 
