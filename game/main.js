@@ -253,42 +253,16 @@ document.addEventListener('DOMContentLoaded', function()
 				walls: this.physics.add.staticGroup()
 			};
 
-			// render level
+			this.lights.enable().setAmbientColor(0x303840);
+
 			const level = this.cache.json.get('level1');
-			for(let index_row = 0; index_row < level.tiles.length; ++index_row)
-			{
-				const row = level.tiles[index_row];
-				const row_overlay = level.tiles_top[index_row];
-
-				for(let index_col = 0; index_col < row.length; ++index_col)
-				{
-					const tile = row[index_col];
-					const tile_overlay = row_overlay[index_col];
-
-					const tilegroup = tilegroups[tile];
-
-					const x = XOFFSET_LEVEL + index_col*WIDTH_TILE;
-					const y = YOFFSET_LEVEL + index_row*HEIGHT_TILE;
-
-					const sprite = this.add.sprite(x, y, 'atlas', tile).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
-					const sprite_overlay = this.add.sprite(x, y, 'atlas', tile_overlay).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
-					if(staticgroups[tilegroup])
-						staticgroups[tilegroup].add(sprite);
-
-					sprite.setPipeline('Light2D');
-					sprite_overlay.setPipeline('Light2D');
-				}
-			}
-
-			this.lights.enable().setAmbientColor(0x333333);
-			this.lights.addLight(0, 0, 200).setColor(0xffffff).setIntensity(2);
-			this.lights.addLight(200, 200, 200).setColor(0xffffff).setIntensity(2);
 
 			state.graph = makegraph(level, tilegroups);
 			const node_spawn = state.graph[3][2];
 			state.node_current = node_spawn;
 
-			// characters
+
+			// animations
 			this.anims.create({
 				key: 'dummy_idle',
 				frames: this.anims.generateFrameNames('atlas', {prefix: 'knight_idle', end: 4}),
@@ -313,37 +287,87 @@ document.addEventListener('DOMContentLoaded', function()
 				frameRate: 12,
 				repeat: -1
 			});
+			this.anims.create({
+				key: 'sconce_unlit',
+				frames: [{key: 'atlas', frame: 'sconce_unlit'}],
+				frameRate: 1
+			});
+			this.anims.create({
+				key: 'sconce_lit',
+				frames: this.anims.generateFrameNames('atlas', {prefix: 'sconce_lit', end: 2}),
+				frameRate: 3,
+				repeat: -1
+			});
+
+			// render lower level layer
+			for(let index_row = 0; index_row < level.tiles.length; ++index_row)
+			{
+				const row = level.tiles[index_row];
+
+				for(let index_col = 0; index_col < row.length; ++index_col)
+				{
+					const tile = row[index_col];
+
+					const tilegroup = tilegroups[tile];
+
+					const x = XOFFSET_LEVEL + index_col*WIDTH_TILE;
+					const y = YOFFSET_LEVEL + index_row*HEIGHT_TILE;
+
+					const sprite = this.add.sprite(x, y, 'atlas', tile).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
+					if(staticgroups[tilegroup])
+						staticgroups[tilegroup].add(sprite);
+
+					sprite.setPipeline('Light2D');
+				}
+			}
+
+			for(let index_object = 0; index_object < level.objects.length; ++index_object)
+			{
+				const object = level.objects[index_object];
+
+				if(object.key === 'sconce')
+				{
+					const x = XOFFSET_LEVEL + object.col*WIDTH_TILE;
+					const y = YOFFSET_LEVEL + object.row*HEIGHT_TILE;
+
+					const sprite = this.add.sprite(x, y, 'atlas', 'sconce_unlit');
+
+					sprite.anims.play(object.lit ? 'sconce_lit' : 'sconce_unlit');
+
+					sprite.setPipeline('Light2D');
+					this.lights.addLight(x, y, 80).setColor(0xffe8b0).setIntensity(object.lit ? 2 : 0);
+				}
+			}
+
+			// initialize character
 			state.dummy = this.physics.add.sprite(XOFFSET_LEVEL + node_spawn.index_col*WIDTH_TILE, YOFFSET_LEVEL + node_spawn.index_row*HEIGHT_TILE, 'atlas').setOrigin(0.5, 1);
 			state.dummy.setPipeline('Light2D');
 			state.dummy.body.setSize(12, 6).setOffset(2, 28);
 
-			// this.anims.create({
-			// 	key: 'damsel',
-			// 	frames: this.anims.generateFrameNames('tileset_animation', {start: 8, end: 11}),
-			// 	frameRate: 8,
-			// 	repeat: -1
-			// });
-			// const damsel = this.add.sprite(232, 150, 'tileset_animation').setDisplayOrigin(8, 28).play('damsel');
-			// damsel.setPipeline('Light2D');
 
+			// render upper level layer
+			for(let index_row = 0; index_row < level.tiles_top.length; ++index_row)
+			{
+				const row = level.tiles_top[index_row];
+
+				for(let index_col = 0; index_col < row.length; ++index_col)
+				{
+					const tile = row[index_col];
+
+					const tilegroup = tilegroups[tile];
+
+					const x = XOFFSET_LEVEL + index_col*WIDTH_TILE;
+					const y = YOFFSET_LEVEL + index_row*HEIGHT_TILE;
+
+					const sprite = this.add.sprite(x, y, 'atlas', tile).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
+					if(staticgroups[tilegroup])
+						staticgroups[tilegroup].add(sprite);
+
+					sprite.setPipeline('Light2D');
+				}
+			}
 
 			// this.physics.add.collider(state.dummy, staticgroups.walls);
-
-
-			// state.actionqueue.push({
-			// 	type: 'move',
-			// 	node_destination: state.graph[9][0],
-			// 	index_path: 0,
-			// 	progress_path: 0,
-			// 	path: null
-			// });
-			// state.actionqueue.push({
-			// 	type: 'move',
-			// 	node_destination: state.graph[2][9],
-			// 	index_path: 0,
-			// 	progress_path: 0,
-			// 	path: null
-			// });
 		},
 
 		update: function()
@@ -465,6 +489,7 @@ document.addEventListener('DOMContentLoaded', function()
 		width: WIDTH_CANVAS/2,
 		height: HEIGHT_CANVAS/2,
 		resolution: 5,
+		backgroundColor: 0x0a0808,
 		physics: {
 			default: 'arcade',
 			arcade: {
