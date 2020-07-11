@@ -176,10 +176,12 @@ document.addEventListener('DOMContentLoaded', function()
 				for(let index_row = 0; index_row < level.tiles.length; ++index_row)
 				{
 					const row = level.tiles[index_row];
+					const row_overlay = level.tiles_top[index_row];
 
 					for(let index_col = 0; index_col < row.length; ++index_col)
 					{
 						const tile = row[index_col];
+						const tile_overlay = row_overlay[index_col];
 
 						const tilegroup = tilegroups[tile];
 
@@ -189,13 +191,16 @@ document.addEventListener('DOMContentLoaded', function()
 						if(staticgroups[tilegroup])
 							staticgroups[tilegroup].create(x, y, 'atlas', tile).setDisplaySize(16, 16).refreshBody();
 						else
+						{
 							this.add.sprite(x, y, 'atlas', tile).setDisplaySize(16, 16);
+							this.add.sprite(x, y, 'atlas', tile_overlay).setDisplaySize(16, 16).setDepth(9);
+						}
 					}
 				}
 
 				const graph = makegraph(level, tilegroups);
 
-				const node_spawn = graph[0][0];
+				const node_spawn = graph[2][1];
 				state.node_current = node_spawn;
 
 				state.actionqueue.push({

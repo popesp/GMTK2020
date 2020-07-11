@@ -526,7 +526,7 @@
             "pivot": {"x":0.5,"y":0.5}
         },
         {
-            "filename": "wall_inner_corner_l_top_rigth",
+            "filename": "wall_inner_corner_l_top_right",
             "frame": {"x": 64, "y": 128, "w": 16, "h": 16},
             "rotated": false,
             "trimmed": false,
@@ -544,7 +544,7 @@
             "pivot": {"x":0.5,"y":0.5}
         },
         {
-            "filename": "wall_inner_corner_mid_rigth",
+            "filename": "wall_inner_corner_mid_right",
             "frame": {"x": 64, "y": 144, "w": 16, "h": 16},
             "rotated": false,
             "trimmed": false,
@@ -562,7 +562,7 @@
             "pivot": {"x":0.5,"y":0.5}
         },
         {
-            "filename": "wall_inner_corner_t_top_rigth",
+            "filename": "wall_inner_corner_t_top_right",
             "frame": {"x": 64, "y": 160, "w": 16, "h": 16},
             "rotated": false,
             "trimmed": false,
