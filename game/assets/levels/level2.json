@@ -36,12 +36,12 @@
 	],
 	"objects": [
         {"key": "sconce", "row": 1, "col": 2, "lit": true},
-		{"key": "sconce", "row": 8, "col": 2, "lit": true},
+		{"key": "sconce", "row": 8, "col": 2, "lit": false},
 		{"key": "sconce", "row": 5, "col": 5, "lit": true},
-		{"key": "sconce", "row": 1, "col": 8, "lit": true},
-        {"key": "sconce", "row": 8, "col": 9, "lit": true},
-        {"key": "sconce", "row": 12, "col": 18, "lit": true},
+		{"key": "sconce", "row": 1, "col": 8, "lit": false},
+        {"key": "sconce", "row": 8, "col": 9, "lit": false},
+        {"key": "sconce", "row": 12, "col": 18, "lit": false},
         {"key": "sconce", "row": 12, "col": 8, "lit": true},
-        {"key": "sconce", "row": 3, "col": 17, "lit": true}
+        {"key": "sconce", "row": 3, "col": 17, "lit": false}
     ]
 }
