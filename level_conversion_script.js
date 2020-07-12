@@ -1,87 +1,92 @@
 const fs = require('fs');
-const { parse } = require('path');
+const {parse} = require('path');
 
 
 const TILE_SET_WIDTH = 512/16;
 
 fs.readFile('game/assets/tileset.json', 'utf8', function(err, data)
 {
-    if(err)
-        console.log(err);
+	if(err)
+		console.log(err);
 
-    const tileset = JSON.parse(data);
+	const tileset = JSON.parse(data);
 
-    const level = {
-        name: 'Upper Dungeon - 2',
-        spawn: [13, 12]
-    }
+	const level = {
+		name: 'Upper Dungeon - 4',
+		spawn: [9, 2]
+	};
 
-    const tile_bottom = 'level3_Tile Layer 1.csv';
-    const tile_top = 'level3_Tile Layer 2.csv';
+	const tile_bottom = 'level4_Tile Layer 1.csv';
+	const tile_top = 'level4_Tile Layer 2.csv';
 
-    const file_promises = [];
-    file_promises.push(new Promise(function(resolve, reject){
-        fs.readFile(`game/assets/levels/${tile_bottom}`, 'utf8', function (err,data) {
-            if(err)
-                reject(err);
-            
-            resolve(data);
-        });
-    }));
+	const file_promises = [];
+	file_promises.push(new Promise(function(resolve, reject)
+	{
+		fs.readFile(`game/assets/levels/${tile_bottom}`, 'utf8', function(err, data)
+		{
+			if(err)
+				reject(err);
 
-    file_promises.push(new Promise(function(resolve, reject){
-        fs.readFile(`game/assets/levels/${tile_top}`, 'utf8', function (err,data) {
-            if(err)
-                reject(err);
-            
-            resolve(data);
-        });
-    }));
+			resolve(data);
+		});
+	}));
 
-    const parse_layer = function(data)
-    {
-        const ret = [];
-        const lines = data.split('\n');
-        for(let i = 0; i < lines.length - 1; ++i)
-        {
-            ret[i] = [];
-            const current_row = ret[i];
-            const split = lines[i].split(',');
-            for(let i = 0; i < split.length; ++i)
-            {
-                let index_into_file = parseInt(split[i]);
-                if(index_into_file === -1)
-                    index_into_file = 0;
+	file_promises.push(new Promise(function(resolve, reject)
+	{
+		fs.readFile(`game/assets/levels/${tile_top}`, 'utf8', function(err, data)
+		{
+			if(err)
+				reject(err);
 
-                let row = Math.floor(index_into_file/TILE_SET_WIDTH);
-                let y = row * 16;
-                let x = (index_into_file - (row * TILE_SET_WIDTH)) * 16;
+			resolve(data);
+		});
+	}));
 
-                let filename;
-                for(let i = 0; i < tileset.frames.length; ++i)
-                {
-                    const frame = tileset.frames[i];
-                    if(x === frame.frame.x && y === frame.frame.y)
-                        filename = frame.filename;
-                }
+	const parse_layer = function(data)
+	{
+		const ret = [];
+		const lines = data.split('\n');
+		for(let i = 0; i < lines.length - 1; ++i)
+		{
+			ret[i] = [];
+			const current_row = ret[i];
+			const split = lines[i].split(',');
+			for(let i = 0; i < split.length; ++i)
+			{
+				let index_into_file = parseInt(split[i]);
+				if(index_into_file === -1)
+					index_into_file = 0;
 
-                current_row[i] = filename;
-            }
-        }
+				const row = Math.floor(index_into_file/TILE_SET_WIDTH);
+				const y = row * 16;
+				const x = (index_into_file - (row * TILE_SET_WIDTH)) * 16;
 
-        return ret;
-    }
+				let filename;
+				for(let i = 0; i < tileset.frames.length; ++i)
+				{
+					const frame = tileset.frames[i];
+					if(x === frame.frame.x && y === frame.frame.y)
+						filename = frame.filename;
+				}
 
-    Promise.all(file_promises).then(function(files)
-    {
-        level.tiles = parse_layer(files[0]);
-        level.tiles_top = parse_layer(files[1]);
+				current_row[i] = filename;
+			}
+		}
 
-        fs.writeFile(`game/assets/levels/${level.name}_parsed.json`, JSON.stringify(level), function (err){
-            if(err)
-                console.log('Ya done goofed');
-            else
-                console.log('Level Parsed');
-        });
-    });
+		return ret;
+	};
+
+	Promise.all(file_promises).then(function(files)
+	{
+		level.tiles = parse_layer(files[0]);
+		level.tiles_top = parse_layer(files[1]);
+
+		fs.writeFile(`game/assets/levels/${level.name}_parsed.json`, JSON.stringify(level), function(err)
+		{
+			if(err)
+				console.log('Ya done goofed');
+			else
+				console.log('Level Parsed');
+		});
+	});
 });

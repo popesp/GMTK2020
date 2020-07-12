@@ -397,8 +397,9 @@ document.addEventListener('DOMContentLoaded', function()
 {
 	const dom_container = document.getElementById('container');
 
+	const level_array = ['level0', 'level1', 'level4', 'level2', 'level3'];
 	let current_level = 0;
-	const max_levels = 4;
+	const max_levels = 5;
 	let current_level_name;
 	const state = {};
 
@@ -554,9 +555,9 @@ document.addEventListener('DOMContentLoaded', function()
 			{
 				title_text.destroy();
 				start_text.destroy();
-				// game.scene.remove('title_scene');
-				// game.scene.add('game_scene', game_scene);
-				text_montage(scene);
+				game.scene.remove('title_scene');
+				game.scene.add('game_scene', game_scene);
+				// text_montage(scene);
 			});
 		},
 
@@ -582,6 +583,7 @@ document.addEventListener('DOMContentLoaded', function()
 			this.load.json('level1', 'assets/levels/level1.json');
 			this.load.json('level2', 'assets/levels/level2.json');
 			this.load.json('level3', 'assets/levels/level3.json');
+			this.load.json('level4', 'assets/levels/level4.json');
 
 			// audio
 			this.load.audio('main_track', 'assets/music/sirdaftsbootybeat.ogg');
@@ -608,10 +610,10 @@ document.addEventListener('DOMContentLoaded', function()
 
 			this.lights.enable().setAmbientColor(0x303840);
 
-			const level = this.cache.json.get(`level${current_level}`);
+			const level = this.cache.json.get(level_array[current_level]);
 			level.xoffset = (this.game.canvas.width - level.tiles[0].length*WIDTH_TILE)/2;
 			level.yoffset = (this.game.canvas.height - level.tiles.length*HEIGHT_TILE)/2;
-			current_level_name = level.name;
+			current_level_name = current_level === 0 ? 'Dungeon - Entrance' : `Dungeon - ${current_level}`;
 
 			state.graph = makegraph(level, tilegroups, state);
 			const node_spawn = state.graph[level.spawn[0]][level.spawn[1]];

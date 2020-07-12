@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.1" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="2" nextobjectid="1">
- <layer id="1" name="Tile Layer 1" width="20" height="20">
+<map version="1.4" tiledversion="1.4.1" orientation="orthogonal" renderorder="right-down" width="18" height="17" tilewidth="16" tileheight="16" infinite="0" nextlayerid="3" nextobjectid="1">
+ <editorsettings>
+  <export target="level4.csv" format="csv"/>
+ </editorsettings>
+ <tileset firstgid="1" source="../../../../../dungeon.tsx"/>
+ <layer id="1" name="Tile Layer 1" width="18" height="17">
   <data encoding="base64" compression="zstd">
-   KLUv/WBABU0AABAAAAEAO/4ACw==
+   KLUv/WDIAzUGALLEDBSwAQARrgCACAAgaO+yo9t7z7vWAe/S1AsMvUemNwBvQfSHIix0cqmz8V1q6cOASupZNUmg8NSABoCCAlRGAxCuOGSCRpylnL/iSEi/LB0nwUjH2lmSFsuhF4yXkWYJv0xtKvN81kNB38aB41smVYzEfFvSGg+PIEB00rYM+54B3B8Zg4O8dn9mGXJehJcHdT/MN7P+uH8uq3lq0cwDmcdk97mHmdljpBP0dhaa7P40Z0XkHWqRs/cN72QREsboCsehBw==
+  </data>
+ </layer>
+ <layer id="2" name="Tile Layer 2" width="18" height="17">
+  <data encoding="base64" compression="zstd">
+   KLUv/WDIA/UCAMAAAAECBAIBAAQCAQEAAAMCISIGAQACAAEhoBB7BPCCCgZmCkVFYU8W4A7QZGR04PBIf0XIu3Uwnk2eOqu5MJWCklqcoBdt2OhKZtSJBP2nie+cMkOqBao9XbcekAE=
   </data>
  </layer>
 </map>
