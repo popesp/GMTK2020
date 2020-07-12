@@ -2,3 +2,5 @@
 .eslintignore
 .eslintrc.json
 phaser.js
+*.tmx
+*.csv
