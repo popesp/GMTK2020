@@ -1,0 +1,33 @@
+{
+	"name": "Level 0",
+	"spawn": [7, 2],
+	"tiles": [
+		[null, null, null, null, "wall_side_top_right", null, null, null, null, null, null],
+		[null, null, null, null, null, null, null, null, null, null, null],
+		[null, null, null, null, null, null, null, null, null, null, null],
+		["wall_side_top_left",   "wall_top_middle", "wall_top_middle", "wall_top_middle", "wall_top_middle",                      "wall_side_top_right", "floor1", "floor1", "floor1", "floor1", "floor1"],
+		["wall_side_mid_left",   "wall_middle",     "wall_middle",     "wall_middle",     "wall_middle",                          "wall_side_mid_right", "floor1", "floor1", "floor1", "floor1", "floor1"],
+		["wall_side_mid_left",   "floor1",          "floor1",          "floor1",          "floor1",                               "floor1", "floor1", "floor1", "floor1", "floor1", "floor1"],
+		["wall_side_mid_left",   "floor1",          "floor1",          "floor1",          "floor1",                               "floor1", "floor1", "floor1", "floor1", "floor1", "floor1"],
+		["wall_side_mid_left",   "floor1",          "floor1",          "floor1",          "floor1",                               "floor1", "floor1", "floor1", "floor1", "floor1", "floor1"],
+		["wall_side_mid_left",   "floor1",          "floor1",          "floor1",          "floor1",                               "floor1", "floor1", "floor1", "floor1", "floor1", "floor1"],
+		["wall_side_front_left", "wall_middle",     "wall_middle",     "wall_middle",     "wall_middle", "wall_side_front_right", "floor1", "floor1", "floor1", "floor1", "floor1"]
+	],
+	"tiles_top": [
+		[null, null, null, null, null, null, null, null, null, null, null],
+		[null, null, null, null, null, null, null, null, null, null, null],
+		[null, null, null, null, null, null, null, null, null, null, null],
+		[null, null, null, null, null, null, null, null, null, null, null],
+		[null, null, null, null, null, null, null, null, null, null, null],
+		[null, null, null, null, null, null, null, null, null, null, null],
+		[null, null, null, null, null, null, null, null, null, null, null],
+		[null, null, null, null, null, null, null, null, null, null, null],
+		[null, "wall_top_middle", "wall_top_middle", "wall_top_middle", "wall_top_middle", null, null, null, null, null, null],
+		[null, null, null, null, null, null, null, null, null, null, null]
+	],
+	"objects": [{"key": "sconce", "row": 0, "col": 0, "lit": true},
+		{"key": "sconce", "row": 8, "col": 0, "lit": true},
+		{"key": "sconce", "row": 5, "col": 5, "lit": true},
+		{"key": "sconce", "row": 0, "col": 8, "lit": true},
+		{"key": "sconce", "row": 8, "col": 9, "lit": true}]
+}
