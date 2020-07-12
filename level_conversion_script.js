@@ -12,12 +12,12 @@ fs.readFile('game/assets/tileset.json', 'utf8', function(err, data)
     const tileset = JSON.parse(data);
 
     const level = {
-        name: 'level0',
-        spawn: [7, 2]
+        name: 'Upper Dungeon - 2',
+        spawn: [12, 3]
     }
 
-    const tile_bottom = 'level0_Tile Layer 1.csv';
-    const tile_top = 'level0_Tile Layer 2.csv';
+    const tile_bottom = 'level2_Tile Layer 1.csv';
+    const tile_top = 'level2_Tile Layer 2.csv';
 
     const file_promises = [];
     file_promises.push(new Promise(function(resolve, reject){
@@ -77,7 +77,7 @@ fs.readFile('game/assets/tileset.json', 'utf8', function(err, data)
         level.tiles = parse_layer(files[0]);
         level.tiles_top = parse_layer(files[1]);
 
-        fs.writeFile(`${level.name}_parsed.json`, JSON.stringify(level), function (err){
+        fs.writeFile(`game/assets/levels/${level.name}_parsed.json`, JSON.stringify(level), function (err){
             if(err)
                 console.log('Ya done goofed');
             else
