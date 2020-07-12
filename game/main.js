@@ -245,27 +245,43 @@ const mood_handler = {
 		// randomly decide to set a new destination when calm
 		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random()*240) < 1)
 		{
-			let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
-			let distance = 1;
-			while(distance < 5)
+			const visited = new Map();
+			visited.set(state.node_current);
+
+			let distance = Math.floor(Math.random()*5) + 1;
+
+			let node_destination = state.node_current;
+			while(distance > 0)
 			{
-				end_node = end_node.paths[Math.floor(Math.random() * end_node.paths.length)];
-				distance++;
+				const nodes_possible = [];
+				for(let index_path = 0; index_path < node_destination.paths.length; ++index_path)
+				{
+					const node = node_destination.paths[index_path];
+
+					if(!node.hazard && !visited.has(node))
+						nodes_possible.push(node);
+				}
+
+				if(nodes_possible.length === 0)
+					break;
+
+				node_destination = nodes_possible[Math.floor(Math.random()*nodes_possible.length)];
+
+				--distance;
 			}
-			if(end_node !== state.node_current)
-			{
+
+			if(node_destination !== state.node_current)
 				state.actionqueue.push({
 					type: 'think',
 					duration: Math.random()*4 + 2
 				},
 				{
 					type: 'move',
-					node_destination: end_node,
+					node_destination: node_destination,
 					index_path: 0,
 					progress_path: 0,
 					path: null
 				});
-			}
 		}
 
 		let moving_for_the_win = false;
@@ -294,7 +310,7 @@ const mood_handler = {
 					state.action_current = null;
 					state.actionqueue.push({
 						type: 'think',
-						duration: Math.random()*2 + 4
+						duration: Math.random()*1 + 2
 					}, {
 						type: 'move',
 						node_destination: node_win,
@@ -870,6 +886,7 @@ document.addEventListener('DOMContentLoaded', function()
 						reset_level(scene);
 					}, 2000);
 				}
+				
 				return;
 			}
 			const action = state.action_current;
@@ -892,7 +909,13 @@ document.addEventListener('DOMContentLoaded', function()
 				else if(action.type === 'move')
 				{
 					if(action.path === null)
+					{
 						action.path = findpath(state.node_current, action.node_destination, state.dummy_mood);
+						action.path[0] = {
+							x: state.dummy.x,
+							y: state.dummy.y
+						};
+					}
 
 					if(action.path.length > 1)
 					{
@@ -917,13 +940,14 @@ document.addEventListener('DOMContentLoaded', function()
 							const node_from = action.path[action.index_path];
 							const node_to = action.path[action.index_path + 1];
 
-							if(node_from.index_col !== node_to.index_col)
-								state.direction_dummy = node_to.index_col < node_from.index_col;
+							if(node_from.x !== node_to.x)
+								state.direction_dummy = node_to.x < node_from.x;
 
-							state.node_current = node_from;
+							if(action.index_path !== 0)
+								state.node_current = node_from;
 
-							const x = Math.floor(XOFFSET_LEVEL + WIDTH_TILE*(node_from.index_col*(1 - action.progress_path) + node_to.index_col*action.progress_path));
-							const y = Math.floor(YOFFSET_LEVEL + HEIGHT_TILE*(node_from.index_row*(1 - action.progress_path) + node_to.index_row*action.progress_path));
+							const x = Math.floor(node_from.x*(1 - action.progress_path) + node_to.x*action.progress_path);
+							const y = Math.floor(node_from.y*(1 - action.progress_path) + node_to.y*action.progress_path);
 
 							state.dummygroup.setXY(x, y);
 						}
