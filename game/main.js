@@ -305,6 +305,8 @@ const mood_handler = {
 				}
 			}
 		}
+		else
+			state.dummy_thought.anims.play('thought_exit', true);
 
 		if(!state.node_current.dim)
 			changemood(state, 'scared');
@@ -377,6 +379,7 @@ document.addEventListener('DOMContentLoaded', function()
 	const dom_container = document.getElementById('container');
 
 	const state = {
+		dummy: null,
 		graph: null,
 		sconces: [],
 		// false: left, true: right
@@ -414,10 +417,6 @@ document.addEventListener('DOMContentLoaded', function()
 
 		create: function()
 		{
-			const staticgroups = {
-				walls: this.physics.add.staticGroup()
-			};
-
 			this.lights.enable().setAmbientColor(0x303840);
 
 			const level = this.cache.json.get('level1');
@@ -426,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function()
 			const node_spawn = state.graph[3][2];
 			state.node_current = node_spawn;
 
-			// animations
+			// character animations
 			this.anims.create({
 				key: 'dummy_idle',
 				frames: this.anims.generateFrameNames('atlas', {prefix: 'knight_idle', end: 4}),
@@ -457,7 +456,35 @@ document.addEventListener('DOMContentLoaded', function()
 				frameRate: 8
 			});
 
-			// sconces
+			// mood animations
+			this.anims.create({
+				key: 'thought_think',
+				frames: this.anims.generateFrameNames('atlas', {prefix: 'thought_think', end: 4}),
+				frameRate: 2,
+				repeat: -1
+			});
+			this.anims.create({
+				key: 'thought_fear',
+				frames: [{key: 'atlas', frame: 'thought_fear'}],
+				frameRate: 1
+			});
+			this.anims.create({
+				key: 'thought_surprise',
+				frames: [{key: 'atlas', frame: 'thought_surprise'}],
+				frameRate: 1
+			});
+			this.anims.create({
+				key: 'thought_exit',
+				frames: [{key: 'atlas', frame: 'thought_exit'}],
+				frameRate: 1
+			});
+			this.anims.create({
+				key: 'thought_none',
+				frames: [{key: 'atlas', frame: 'thought_none'}],
+				frameRate: 1
+			});
+
+			// sconce animations
 			this.anims.create({
 				key: 'sconce_unlit',
 				frames: [{key: 'atlas', frame: 'sconce_unlit'}],
@@ -490,15 +517,10 @@ document.addEventListener('DOMContentLoaded', function()
 				{
 					const tile = row[index_col];
 
-					const tilegroup = tilegroups[tile];
-
 					const x = XOFFSET_LEVEL + index_col*WIDTH_TILE;
 					const y = YOFFSET_LEVEL + index_row*HEIGHT_TILE;
 
 					const sprite = this.add.sprite(x, y, 'atlas', tile).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
-					if(staticgroups[tilegroup])
-						staticgroups[tilegroup].add(sprite);
-
 					sprite.setPipeline('Light2D');
 				}
 			}
@@ -560,10 +582,18 @@ document.addEventListener('DOMContentLoaded', function()
 
 			lightgraph(state.graph, state.sconces);
 
+			state.dummygroup = this.add.group();
+
 			// initialize character
-			state.dummy = this.physics.add.sprite(XOFFSET_LEVEL + node_spawn.index_col*WIDTH_TILE, YOFFSET_LEVEL + node_spawn.index_row*HEIGHT_TILE, 'atlas').setOrigin(0.5, 1);
+			state.dummy = state.dummygroup.create(0, 0, 'atlas').setOrigin(0.5, 1);
 			state.dummy.setPipeline('Light2D');
-			state.dummy.body.setSize(12, 6).setOffset(2, 28);
+			// dummy.body.setSize(12, 6).setOffset(2, 28);
+
+			state.dummy_thought = state.dummygroup.create(0, 0, 'atlas');
+			state.dummy_thought.anims.play('thought_none');
+			state.dummy_thought.setDisplayOrigin(5, 31);
+
+			state.dummygroup.setXY(XOFFSET_LEVEL + node_spawn.index_col*WIDTH_TILE, YOFFSET_LEVEL + node_spawn.index_row*HEIGHT_TILE);
 
 
 			// render upper level layer
@@ -575,20 +605,14 @@ document.addEventListener('DOMContentLoaded', function()
 				{
 					const tile = row[index_col];
 
-					const tilegroup = tilegroups[tile];
-
 					const x = XOFFSET_LEVEL + index_col*WIDTH_TILE;
 					const y = YOFFSET_LEVEL + index_row*HEIGHT_TILE;
 
 					const sprite = this.add.sprite(x, y, 'atlas', tile).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
-					if(staticgroups[tilegroup])
-						staticgroups[tilegroup].add(sprite);
 
 					sprite.setPipeline('Light2D');
 				}
 			}
-
-			this.physics.add.collider(state.dummy, staticgroups.walls);
 		},
 
 		update: function()
@@ -619,10 +643,15 @@ document.addEventListener('DOMContentLoaded', function()
 			{
 				if(action.type === 'think')
 				{
+					if(state.dummy_mood === 'calm')
+						state.dummy_thought.anims.play('thought_think', true);
+
 					action.duration -= THINK_SPEED;
-					state.dummy.anims.pause();
 					if(action.duration <= 0)
+					{
 						state.action_current = null;
+						state.dummy_thought.anims.play('thought_none', true);
+					}
 				}
 				else if(action.type === 'move')
 				{
@@ -639,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function()
 							{
 								const node_end = action.path[action.index_path];
 
-								state.dummy.setPosition(node_end.x, node_end.y);
+								state.dummygroup.setXY(node_end.x, node_end.y);
 								state.node_current = node_end;
 								state.action_current = null;
 							}
@@ -660,7 +689,7 @@ document.addEventListener('DOMContentLoaded', function()
 							const x = Math.floor(XOFFSET_LEVEL + WIDTH_TILE*(node_from.index_col*(1 - action.progress_path) + node_to.index_col*action.progress_path));
 							const y = Math.floor(YOFFSET_LEVEL + HEIGHT_TILE*(node_from.index_row*(1 - action.progress_path) + node_to.index_row*action.progress_path));
 
-							state.dummy.setPosition(x, y);
+							state.dummygroup.setXY(x, y);
 						}
 
 						state.dummy.anims.play(state.dummy_mood === 'scared' ? 'dummy_run_scared' : 'dummy_run', true);
@@ -673,6 +702,11 @@ document.addEventListener('DOMContentLoaded', function()
 					state.dummy_speed = action.mood === 'scared' ? 0.06 : 0.03;
 
 					state.changing_moods = false;
+
+					if(action.mood === 'scared')
+						state.dummy_thought.anims.play('thought_surprise', true);
+					else if(action.mood === 'calm')
+						state.dummy_thought.anims.play('thought_none', true);
 				}
 			}
 
@@ -706,11 +740,6 @@ document.addEventListener('DOMContentLoaded', function()
 		},
 		create: function()
 		{
-			// render overloard controls
-			this.add.sprite(0, 0, 'atlas_ux', 'ux_heart_full').setOrigin(0, 0);
-			this.add.sprite(36, 0, 'atlas_ux', 'ux_heart_half').setOrigin(0, 0);
-			this.add.sprite(72, 0, 'atlas_ux', 'ux_heart_empty').setOrigin(0, 0);
-
 			state.ux_stored_light = {
 				sprites: [
 					this.add.sprite(184, 10, 'atlas', 'sconce_unlit'),
@@ -762,7 +791,7 @@ document.addEventListener('DOMContentLoaded', function()
 		const r = HEIGHT_CANVAS/WIDTH_CANVAS;
 
 		if(w*r > window.innerHeight)
-			w = Math.min(w, Math.ceil(h/r));
+			w = Math.min(w, Math.ceil(h/r), 800);
 		h = Math.floor(w*r);
 
 		dom_container.style.width = game.canvas.style.width = `${w}px`;

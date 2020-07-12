@@ -422,31 +422,35 @@
 		},
 		{
 			"filename": "thought_think1",
-			"frame": {"x": 128, "y": 128, "w": 16, "h": 16}
+			"frame": {"x": 128, "y": 160, "w": 16, "h": 16}
 		},
 		{
 			"filename": "thought_think2",
-			"frame": {"x": 144, "y": 128, "w": 16, "h": 16}
+			"frame": {"x": 144, "y": 160, "w": 16, "h": 16}
 		},
 		{
 			"filename": "thought_think3",
-			"frame": {"x": 160, "y": 128, "w": 16, "h": 16}
+			"frame": {"x": 160, "y": 160, "w": 16, "h": 16}
 		},
 		{
 			"filename": "thought_think4",
-			"frame": {"x": 176, "y": 128, "w": 16, "h": 16}
+			"frame": {"x": 176, "y": 160, "w": 16, "h": 16}
 		},
 		{
 			"filename": "thought_fear",
-			"frame": {"x": 192, "y": 128, "w": 16, "h": 16}
+			"frame": {"x": 192, "y": 160, "w": 16, "h": 16}
 		},
 		{
 			"filename": "thought_surprise",
-			"frame": {"x": 208, "y": 128, "w": 16, "h": 16}
+			"frame": {"x": 208, "y": 160, "w": 16, "h": 16}
 		},
 		{
 			"filename": "thought_exit",
-			"frame": {"x": 224, "y": 128, "w": 16, "h": 16}
+			"frame": {"x": 224, "y": 160, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_none",
+			"frame": {"x": 240, "y": 160, "w": 16, "h": 16}
 		}
 	]
 }
