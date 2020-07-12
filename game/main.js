@@ -27,6 +27,7 @@ const tilegroups = {
 	'floor6': 'below',
 	'floor7': 'below',
 	'floor8': 'below',
+	'feature_slime_base': 'below',
 	'floor_ladder': 'below',
 	'feature_lava_base1': 'below',
 	'wall_left': 'walls',
@@ -374,29 +375,18 @@ function changemood(state, mood)
 	});
 }
 
+function reset_level(scene, ux_scene)
+{
+	scene.restart();
+	ux_scene.restart();
+}
+
 document.addEventListener('DOMContentLoaded', function()
 {
 	const dom_container = document.getElementById('container');
 
-	const state = {
-		dummy: null,
-		graph: null,
-		sconces: [],
-		// false: left, true: right
-		direction_dummy: 0,
-		node_current: null,
-		actionqueue: [],
-		action_current: null,
-		// normalized tile units per frame
-		dummy_speed: 0.03,
-
-		dummy_mood: 'calm',
-		changing_moods: false,
-
-		win: false,
-		lose: false,
-		nodes_win: []
-	};
+	const state = {};
+	let ux_scene_obj;
 
 	const game_scene = new Phaser.Class({
 		Extends: Phaser.Scene,
@@ -417,12 +407,29 @@ document.addEventListener('DOMContentLoaded', function()
 
 		create: function()
 		{
+			// init state
+			state.dummy = null;
+			state.graph = null;
+			state.sconces = [];
+			state.direction_dummy = 0;
+			state.node_current = null;
+			state.actionqueue = [];
+			state.action_current = null;
+			// normalized tile units per frame
+			state.dummy_speed = 0.03;
+			state.dummy_mood = 'calm';
+			state.changing_moods = false;
+			state.win = false;
+			state.lose = false;
+			state.nodes_win = [];
+
+
 			this.lights.enable().setAmbientColor(0x303840);
 
-			const level = this.cache.json.get('level1');
+			const level = this.cache.json.get('level0');
 
 			state.graph = makegraph(level, tilegroups, state);
-			const node_spawn = state.graph[3][2];
+			const node_spawn = state.graph[level.spawn[0]][level.spawn[1]];
 			state.node_current = node_spawn;
 
 			// character animations
@@ -630,11 +637,15 @@ document.addEventListener('DOMContentLoaded', function()
 			{
 				if(!state.lose)
 				{
+					const scene = this.scene;
 					state.lose = true;
 					state.dummy.anims.play('dummy_fall');
 					this.add.text(0, 24, 'You Died Idiot kekw', {fontFamily: 'nightie', fontSize: '27px', fixedWidth: this.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0);
+					setTimeout(function()
+					{
+						reset_level(scene, ux_scene_obj);
+					}, 2000);
 				}
-				
 				return;
 			}
 			const action = state.action_current;
@@ -730,7 +741,7 @@ document.addEventListener('DOMContentLoaded', function()
 
 	const ux_scene = new Phaser.Class({
 		Extends: Phaser.Scene,
-		initialize: function ux_scene()
+		initialize: function()
 		{
 			Phaser.Scene.call(this, {key: 'ux_scene', active: true});
 		},
@@ -740,6 +751,7 @@ document.addEventListener('DOMContentLoaded', function()
 		},
 		create: function()
 		{
+			ux_scene_obj = this.scene;
 			state.ux_stored_light = {
 				sprites: [
 					this.add.sprite(164, 10, 'atlas', 'sconce_unlit'),
