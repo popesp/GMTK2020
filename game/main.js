@@ -398,12 +398,13 @@ document.addEventListener('DOMContentLoaded', function()
 	const dom_container = document.getElementById('container');
 
 	let current_level = 0;
+	const max_levels = 4;
 	let current_level_name;
 	const state = {};
 
 	const game = new Phaser.Game({
 		type: Phaser.AUTO,
-		title: 'GMTK 2020',
+		title: 'Dummy Dungeons',
 		parent: dom_container,
 		width: WIDTH_CANVAS/2,
 		height: HEIGHT_CANVAS/2,
@@ -433,21 +434,6 @@ document.addEventListener('DOMContentLoaded', function()
 		preload: function()
 		{
 			this.load.atlas('atlas', ['assets/tileset.png', 'assets/normal.png'], 'assets/tileset.json');
-
-			/*
-			…alas, a dilemma -
-
-			There is but one in the dominion daring enough
-			to delve these deadly depths -
-			The dubious Sir Daft.
-
-			Deprived of wit,
-			and dreading the dark,
-			despite certain death
-			he gladly departs.
-
-			Divert his destiny, lest the kingdom be lost…
-			*/
 		},
 
 		create: function()
@@ -568,9 +554,9 @@ document.addEventListener('DOMContentLoaded', function()
 			{
 				title_text.destroy();
 				start_text.destroy();
-				game.scene.remove('title_scene');
-				game.scene.add('game_scene', game_scene);
-				// text_montage(scene);
+				// game.scene.remove('title_scene');
+				// game.scene.add('game_scene', game_scene);
+				text_montage(scene);
 			});
 		},
 
@@ -806,9 +792,9 @@ document.addEventListener('DOMContentLoaded', function()
 			// UX Scene
 			state.ux_stored_light = {
 				sprites: [
-					this.add.sprite(164, 10, 'atlas', 'sconce_unlit'),
-					this.add.sprite(185, 10, 'atlas', 'sconce_unlit'),
-					this.add.sprite(206, 10, 'atlas', 'sconce_unlit')
+					this.add.sprite(32, 10, 'atlas', 'sconce_unlit'),
+					this.add.sprite(52, 10, 'atlas', 'sconce_unlit'),
+					this.add.sprite(72, 10, 'atlas', 'sconce_unlit')
 				],
 				available: 0
 			};
@@ -826,6 +812,12 @@ document.addEventListener('DOMContentLoaded', function()
 					level_text.setAlpha(tween.getValue());
 				}
 			});
+
+			// Tutorial Text
+			if(current_level === 0)
+			{
+				this.add.text(120, 78, 'Toggle lights\nto guide Sir Daft\nv', {fontFamily: 'nightie', fontSize: '16px', align: 'center'}).setOrigin(0, 0);
+			}
 
 			// music
 			const music = this.sound.add('main_track', {volume: .2});
@@ -845,17 +837,26 @@ document.addEventListener('DOMContentLoaded', function()
 
 		update: function()
 		{
-			const scene = this.scene;
+			const instance = this;
+			const scene = instance.scene;
 			if(state.node_current.win)
 			{
 				if(!state.win)
 				{
 					state.win = true;
-					this.add.text(0, 24, 'Sir Daft is Victorious', {fontFamily: 'nightie', fontSize: '27px', fixedWidth: this.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0);
+					const victory_text = this.add.text(0, 24, 'Sir Daft is Victorious', {fontFamily: 'nightie', fontSize: '27px', fixedWidth: this.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0);
 					setTimeout(function()
 					{
 						current_level++;
-						reset_level(scene);
+						if(current_level === max_levels)
+						{
+							victory_text.destroy();
+							instance.add.text(instance.game.canvas.width/2, instance.game.canvas.height/2, 'CONGRAGULATIONS', {fontFamily: 'nightie', fontSize: '27px', backgroundColor: 0x303030, fixedWidth: instance.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0.5, 0.5);
+						}
+						else
+						{
+							reset_level(scene);
+						}
 					}, 2000);
 				}
 				return;

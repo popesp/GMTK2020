@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.4" tiledversion="1.4.1" orientation="orthogonal" renderorder="right-down" width="19" height="18" tilewidth="16" tileheight="16" infinite="0" nextlayerid="4" nextobjectid="1">
  <editorsettings>
-  <export format="csv"/>
+  <export target="level3.csv" format="csv"/>
  </editorsettings>
  <tileset firstgid="1" source="../../../../../dungeon.tsx"/>
  <layer id="2" name="Tile Layer 1" width="19" height="18">
