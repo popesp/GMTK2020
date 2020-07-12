@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.4" tiledversion="1.4.1" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="3" nextobjectid="1">
+ <editorsettings>
+  <export target="level2.csv" format="csv"/>
+ </editorsettings>
+ <tileset firstgid="1" source="../../../../../dungeon.tsx"/>
+ <layer id="1" name="Tile Layer 1" width="20" height="20">
+  <data encoding="base64" compression="zstd">
+   KLUv/WBABX0GAJKEDBLQgQDEKyDWeVCBoe8z9h/8znkPj5zZtvI4OF9GyHy/V70J+qBTCPWMZScHib4FoB4NU6AAt4QAsIIDmKMD2NYmncJE7kvnS56p3GV1k0p2r2n6hdWcJye6aUSDRs5Elmi7W+40veKYAV6v3JwSwhMiNiX41cUCrDNhBIfhgv0vMPx1GuOYkqLWZYTbQcmkw+9g8/KyxASXcPJY7o3wLW/o/kS9TTngw1MwK7MHxLdzDU0WV02+CyOYhG7FFG8964xY//fewYPnXhL7tg==
+  </data>
+ </layer>
+ <layer id="2" name="Tile Layer 2" width="20" height="20">
+  <data encoding="base64" compression="zstd">
+   KLUv/WBABTUEAEQCAADk4wABAQEAAQECAAAAAwQiAQEAAQEB4eIABeMFAgEDIgEiLqDwnAuwghORkwEF1EtS4+fySeT2+oPVIXun9ygAEBs6+LtWpgOUcekbVDyKCPl1l91APETjuej1oTS9/fnZxGnuztowcIffuUNrLZ0ux8iHsdAm5uyjzkOkz25bKicB
+  </data>
+ </layer>
+</map>
