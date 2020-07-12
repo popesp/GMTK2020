@@ -13,11 +13,11 @@ fs.readFile('game/assets/tileset.json', 'utf8', function(err, data)
 
     const level = {
         name: 'Upper Dungeon - 2',
-        spawn: [12, 3]
+        spawn: [13, 12]
     }
 
-    const tile_bottom = 'level2_Tile Layer 1.csv';
-    const tile_top = 'level2_Tile Layer 2.csv';
+    const tile_bottom = 'level3_Tile Layer 1.csv';
+    const tile_top = 'level3_Tile Layer 2.csv';
 
     const file_promises = [];
     file_promises.push(new Promise(function(resolve, reject){

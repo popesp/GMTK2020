@@ -400,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function()
 {
 	const dom_container = document.getElementById('container');
 
-	let current_level = 2;
+	let current_level = 0;
 	let current_level_name;
 	const state = {};
 
@@ -571,7 +571,7 @@ document.addEventListener('DOMContentLoaded', function()
 				title_text.destroy();
 				start_text.destroy();
 				game.scene.remove('title_scene');
-					game.scene.add('game_scene', game_scene);
+				game.scene.add('game_scene', game_scene);
 				// text_montage(scene);
 			});
 		},
@@ -597,6 +597,7 @@ document.addEventListener('DOMContentLoaded', function()
 			this.load.json('level0', 'assets/levels/level0.json');
 			this.load.json('level1', 'assets/levels/level1.json');
 			this.load.json('level2', 'assets/levels/level2.json');
+			this.load.json('level3', 'assets/levels/level3.json');
 
 			// audio
 			this.load.audio('main_track', 'assets/music/sirdaftsbootybeat.ogg');
