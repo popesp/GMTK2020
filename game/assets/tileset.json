@@ -475,6 +475,10 @@
 		{
 			"filename": "thought_none",
 			"frame": {"x": 240, "y": 160, "w": 16, "h": 16}
+		},
+		{
+			"filename": "audio_play",
+			"frame": {"x": 128, "y": 176, "w": 16, "h": 16}
 		}
 	]
 }

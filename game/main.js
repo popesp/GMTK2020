@@ -388,6 +388,183 @@ document.addEventListener('DOMContentLoaded', function()
 	let current_level_name;
 	const state = {};
 
+	const game = new Phaser.Game({
+		type: Phaser.AUTO,
+		title: 'GMTK 2020',
+		parent: dom_container,
+		width: WIDTH_CANVAS/2,
+		height: HEIGHT_CANVAS/2,
+		resolution: 5,
+		backgroundColor: 0x0a0808,
+		physics: {
+			default: 'arcade',
+			arcade: {
+				// debug: true,
+				fps: 30
+			}
+		},
+		audio: {
+			disableWebAudio: true,
+			noAudio: false
+		}
+	});
+
+	let intro_daft;
+	const title_scene = new Phaser.Class({
+		Extends: Phaser.Scene,
+		initialize: function()
+		{
+			Phaser.Scene.call(this, {key: 'title_scene', active: true});
+		},
+
+		preload: function()
+		{
+			this.load.atlas('atlas', ['assets/tileset.png', 'assets/normal.png'], 'assets/tileset.json');
+
+			/*
+			…alas, a dilemma -
+
+			There is but one in the dominion daring enough
+			to delve these deadly depths -
+			The dubious Sir Daft.
+
+			Deprived of wit,
+			and dreading the dark,
+			despite certain death
+			he gladly departs.
+
+			Divert his destiny, lest the kingdom be lost…
+			*/
+		},
+
+		create: function()
+		{
+			const scene = this;
+			scene.anims.create({
+				key: 'knight_run_intro',
+				frames: this.anims.generateFrameNames('atlas', {prefix: 'knight_run', end: 4}),
+				frameRate: 8,
+				repeat: -1
+			});
+
+			const display_montage_text = function(montage_part, timeout, y_position)
+			{
+				setTimeout(function()
+				{
+					montage_part.obj = scene.add.text(0, y_position, montage_part.text, {fontFamily: 'nightie', fontSize: '23px', fixedWidth: scene.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0.5);
+					montage_part.obj.setAlpha(0);
+					scene.tweens.addCounter({
+						from: 0,
+						to: 1,
+						duration: 1000,
+						onUpdate: function(tween)
+						{
+							montage_part.obj.setAlpha(tween.getValue());
+						}
+					});
+				}, timeout);
+			}
+			const text_montage = function(scene)
+			{
+				let total_duration = 500;
+				const montage = [
+					{text: 'There is but one in the dominion daring enough'},
+					{text: 'to delve these deadly depths -'},
+					{text: 'The dubious Sir Daft.'},
+					{text: 'Deprived of wit,'},
+					{text: 'and dreading the dark,'},
+					{text: 'despite certain death'},
+					{text: 'he gladly departs.'},
+					{text: 'Divert his destiny, lest the kingdom be lost…'}
+				];
+				display_montage_text(montage[0], total_duration, scene.game.canvas.height/2 - 20);
+				display_montage_text(montage[1], total_duration += 2000, scene.game.canvas.height/2);
+				display_montage_text(montage[2], total_duration += 2000, scene.game.canvas.height/2 + 20);
+				total_duration += 2000
+				setTimeout(function()
+				{
+					scene.tweens.addCounter({
+						from: 1,
+						to: 0,
+						duration: 2000,
+						onUpdate: function(tween)
+						{
+							montage[0].obj.setAlpha(tween.getValue());
+							montage[1].obj.setAlpha(tween.getValue());
+							montage[2].obj.setAlpha(tween.getValue());
+						}
+					});
+				}, total_duration);
+
+				display_montage_text(montage[3], total_duration += 2000, scene.game.canvas.height/2 - 30);
+				display_montage_text(montage[4], total_duration += 2000, scene.game.canvas.height/2 - 10);
+				display_montage_text(montage[5], total_duration += 2000, scene.game.canvas.height/2 + 10);
+				display_montage_text(montage[6], total_duration += 2000, scene.game.canvas.height/2 + 30);
+				total_duration += 2000;
+				setTimeout(function()
+				{
+					scene.tweens.addCounter({
+						from: 1,
+						to: 0,
+						duration: 2000,
+						onUpdate: function(tween)
+						{
+							montage[3].obj.setAlpha(tween.getValue());
+							montage[4].obj.setAlpha(tween.getValue());
+							montage[5].obj.setAlpha(tween.getValue());
+							montage[6].obj.setAlpha(tween.getValue());
+						}
+					});
+				}, total_duration);
+				
+				setTimeout(function()
+				{
+					// play sir daft animation
+					intro_daft = scene.add.sprite(0, 208, 'atlas', 'knight_run1');
+					intro_daft.setScale(2);
+					intro_daft.anims.play('knight_run_intro');
+				}, total_duration - 4000);
+
+				display_montage_text(montage[7], total_duration += 2000, scene.game.canvas.height/2);
+				total_duration += 2000;
+				setTimeout(function()
+				{
+					scene.tweens.addCounter({
+						from: 1,
+						to: 0,
+						duration: 2000,
+						onUpdate: function(tween)
+						{
+							montage[7].obj.setAlpha(tween.getValue());
+						}
+					});
+				}, total_duration);
+				total_duration += 2000;
+				setTimeout(function()
+				{
+					game.scene.remove('title_scene');
+					game.scene.add('game_scene', game_scene);
+				}, total_duration);
+			}
+
+			const title_text = scene.add.text(0, 24, 'Dummy Dungeons', {fontFamily: 'nightie', fontSize: '27px', fixedWidth: scene.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0);
+			const start_text = scene.add.text(0, 200, 'Start Game', {fontFamily: 'nightie', fontSize: '27px', fixedWidth: scene.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0);
+			start_text.setInteractive({useHandCursor: true});
+			start_text.on('pointerup', function()
+			{
+				title_text.destroy();
+				start_text.destroy();
+				text_montage(scene);
+			});
+		},
+
+		update: function()
+		{
+			if(intro_daft !== undefined)
+				intro_daft.setX(intro_daft.x + 1);
+		}
+	});
+
 	const game_scene = new Phaser.Class({
 		Extends: Phaser.Scene,
 		initialize: function()
@@ -399,10 +576,12 @@ document.addEventListener('DOMContentLoaded', function()
 		{
 			// load assets
 			// phaser is bad so we need to do this, and by need I mean I don't know how to do it in phaser
-			this.load.atlas('atlas', ['assets/tileset.png', 'assets/normal.png'], 'assets/tileset.json');
 			this.load.json('level0', 'assets/levels/level0.json');
 			this.load.json('level1', 'assets/levels/level1.json');
 			this.load.json('level2', 'assets/levels/level2.json');
+
+			// audio
+			this.load.audio('main_track', 'assets/music/sirdaftsbootybeat.mp3');
 		},
 
 		create: function()
@@ -645,6 +824,21 @@ document.addEventListener('DOMContentLoaded', function()
 					level_text.setAlpha(tween.getValue());
 				}
 			});
+
+			// music
+			const music = this.sound.add('main_track', {volume: .2});
+			music.setLoop(true);
+			const audio_sprite = this.add.sprite(0, 0, 'atlas', 'audio_play').setOrigin(0,0);
+			audio_sprite.setInteractive({
+				useHandCursor: true
+			});
+			audio_sprite.on('pointerup', function()
+			{
+				if(music.isPaused || !music.isPlaying)
+					music.play();
+				else
+					music.pause();
+			});
 		},
 
 		update: function()
@@ -769,23 +963,7 @@ document.addEventListener('DOMContentLoaded', function()
 		}
 	});
 
-	const game = new Phaser.Game({
-		type: Phaser.AUTO,
-		title: 'GMTK 2020',
-		parent: dom_container,
-		width: WIDTH_CANVAS/2,
-		height: HEIGHT_CANVAS/2,
-		resolution: 5,
-		backgroundColor: 0x0a0808,
-		physics: {
-			default: 'arcade',
-			arcade: {
-				// debug: true,
-				fps: 30
-			}
-		},
-		scene: game_scene
-	});
+	game.scene.add('title_scene', title_scene);
 
 	function resize()
 	{
