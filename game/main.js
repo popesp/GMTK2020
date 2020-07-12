@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function()
 			{
 				setTimeout(function()
 				{
-					montage_part.obj = scene.add.text(0, y_position, montage_part.text, {fontFamily: 'nightie', fontSize: '23px', fixedWidth: scene.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0.5);
+					montage_part.obj = scene.add.text(0, y_position, montage_part.text, {fontFamily: 'nightie', fontSize: '27px', fixedWidth: scene.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0.5);
 					montage_part.obj.setAlpha(0);
 					scene.tweens.addCounter({
 						from: 0,
