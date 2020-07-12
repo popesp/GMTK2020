@@ -4,10 +4,19 @@
 		<meta charset="utf-8">
 		<title>GMTK 2020</title>
 		<link rel="stylesheet" href="styles/main.css">
+		<style media="screen" type="text/css">
+			@font-face {
+				font-family: "nightie";
+				src: url("assets/NiceNightie.ttf");
+				font-weight: 100;
+			}
+		</style>
 		<script src="phaser/phaser.js"></script>
 		<script src="main.js"></script>
 	</head>
 	<body>
+		<!-- force the font to load -->
+		<div style="font-family: 'nightie'; position: absolute; left: -1000px;">-</div>
 		<div id="container"></div>
 	</body>
 </html>

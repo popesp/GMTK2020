@@ -720,20 +720,19 @@ document.addEventListener('DOMContentLoaded', function()
 				available: 0
 			};
 
-			state.dummy_mood_text = this.add.text(125, 0, '', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
-			this.add.text(250, 0, 'Upper Dungeon - 1', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
-		},
-		update: function()
-		{
-			let mood_text;
-			if(state.action_current !== null && state.action_current.type === 'think')
-				mood_text = '...';
-			else if(state.dummy_mood === 'calm')
-				mood_text = 'Calm';
-			else if(state.dummy_mood === 'scared')
-				mood_text = 'Scared';
+			const level_text = this.add.text(this.game.canvas.width/2, this.game.canvas.height/2, 'Upper Dungeon - 1', {fontFamily: 'nightie', fontSize: '27px', backgroundColor: 0x303030, fixedWidth: this.game.canvas.width, fixedHeight: 32, align: 'center'});
+			level_text.setOrigin(0.5, 0.5);
+			level_text.font = 'nightie';
 
-			state.dummy_mood_text.setText(mood_text);
+			this.tweens.addCounter({
+				from: 1,
+				to: 0,
+				duration: 2000,
+				onUpdate: function(tween)
+				{
+					level_text.setAlpha(tween.getValue());
+				}
+			});
 		}
 	});
 

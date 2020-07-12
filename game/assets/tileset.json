@@ -419,6 +419,34 @@
 		{
 			"filename": "sconce_lit_outline2",
 			"frame": {"x": 336, "y": 208, "w": 16, "h": 32}
+		},
+		{
+			"filename": "thought_think1",
+			"frame": {"x": 128, "y": 128, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_think2",
+			"frame": {"x": 144, "y": 128, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_think3",
+			"frame": {"x": 160, "y": 128, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_think4",
+			"frame": {"x": 176, "y": 128, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_fear",
+			"frame": {"x": 192, "y": 128, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_surprise",
+			"frame": {"x": 208, "y": 128, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_exit",
+			"frame": {"x": 224, "y": 128, "w": 16, "h": 16}
 		}
 	]
 }
