@@ -447,6 +447,18 @@
 		{
 			"filename": "thought_exit",
 			"frame": {"x": 224, "y": 128, "w": 16, "h": 16}
+		},
+		{
+			"filename": "ui_heart_full",
+			"frame": {"x": 288, "y": 256, "w": 16, "h": 16}
+		},
+		{
+			"filename": "ui_heart_half",
+			"frame": {"x": 304, "y": 256, "w": 16, "h": 16}
+		},
+		{
+			"filename": "ui_heart_empty",
+			"frame": {"x": 320, "y": 256, "w": 16, "h": 16}
 		}
 	]
 }
