@@ -622,7 +622,7 @@ document.addEventListener('DOMContentLoaded', function()
 				if(!state.win)
 				{
 					state.win = true;
-					this.add.text(120, 30, 'You Win POGGERS', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
+					this.add.text(0, 24, 'You Win POGGERS', {fontFamily: 'nightie', fontSize: '27px', fixedWidth: this.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0);
 				}
 				return;
 			}
@@ -632,8 +632,9 @@ document.addEventListener('DOMContentLoaded', function()
 				{
 					state.lose = true;
 					state.dummy.anims.play('dummy_fall');
-					this.add.text(120, 30, 'You Died Idiot kekw', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
+					this.add.text(0, 24, 'You Died Idiot kekw', {fontFamily: 'nightie', fontSize: '27px', fixedWidth: this.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0);
 				}
+				
 				return;
 			}
 			const action = state.action_current;
@@ -735,16 +736,15 @@ document.addEventListener('DOMContentLoaded', function()
 		},
 		preload: function()
 		{
-			this.load.atlas('atlas_ux', 'assets/ux.png', 'assets/ux.json');
 			this.load.atlas('atlas', ['assets/tileset.png', 'assets/normal.png'], 'assets/tileset.json');
 		},
 		create: function()
 		{
 			state.ux_stored_light = {
 				sprites: [
-					this.add.sprite(184, 10, 'atlas', 'sconce_unlit'),
-					this.add.sprite(205, 10, 'atlas', 'sconce_unlit'),
-					this.add.sprite(226, 10, 'atlas', 'sconce_unlit')
+					this.add.sprite(164, 10, 'atlas', 'sconce_unlit'),
+					this.add.sprite(185, 10, 'atlas', 'sconce_unlit'),
+					this.add.sprite(206, 10, 'atlas', 'sconce_unlit')
 				],
 				available: 0
 			};
