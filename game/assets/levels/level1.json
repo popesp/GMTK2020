@@ -1,5 +1,5 @@
 {
-	"name": "Level 1",
+	"name": "Upper Dungeon - 1",
 	"spawn": [2, 3],
 	"tiles": [
 		[null,						"wall_side_top_left",	"wall_top_middle",	"wall_top_middle",			"wall_top_middle",			"wall_side_top_right",		"wall_side_top_left",		"wall_top_middle",	"wall_top_middle",	"wall_top_middle",			"wall_top_middle",		"wall_side_top_right",		null,				null],
