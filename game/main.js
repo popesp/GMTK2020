@@ -1,9 +1,6 @@
 const WIDTH_CANVAS = 800;
 const HEIGHT_CANVAS = 600;
 
-const XOFFSET_LEVEL = 64;
-const YOFFSET_LEVEL = 48;
-
 const WIDTH_TILE = 16;
 const HEIGHT_TILE = 16;
 
@@ -60,8 +57,8 @@ function makegraph(level, tilegroups, state)
 				const node = {
 					index_row,
 					index_col,
-					x: XOFFSET_LEVEL + WIDTH_TILE*index_col,
-					y: YOFFSET_LEVEL + HEIGHT_TILE*index_row,
+					x: level.xoffset + WIDTH_TILE*index_col,
+					y: level.yoffset + HEIGHT_TILE*index_row,
 					paths: []
 				};
 				if(tile === null || tile === 'edge')
@@ -400,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function()
 {
 	const dom_container = document.getElementById('container');
 
-	let current_level = 2;
+	let current_level = 0;
 	let current_level_name;
 	const state = {};
 
@@ -479,7 +476,8 @@ document.addEventListener('DOMContentLoaded', function()
 						}
 					});
 				}, timeout);
-			}
+			};
+
 			const text_montage = function(scene)
 			{
 				let total_duration = 500;
@@ -496,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function()
 				display_montage_text(montage[0], total_duration, scene.game.canvas.height/2 - 20);
 				display_montage_text(montage[1], total_duration += 2000, scene.game.canvas.height/2);
 				display_montage_text(montage[2], total_duration += 2000, scene.game.canvas.height/2 + 20);
-				total_duration += 2000
+				total_duration += 2000;
 				setTimeout(function()
 				{
 					scene.tweens.addCounter({
@@ -532,7 +530,7 @@ document.addEventListener('DOMContentLoaded', function()
 						}
 					});
 				}, total_duration);
-				
+
 				setTimeout(function()
 				{
 					// play sir daft animation
@@ -561,7 +559,7 @@ document.addEventListener('DOMContentLoaded', function()
 					game.scene.remove('title_scene');
 					game.scene.add('game_scene', game_scene);
 				}, total_duration);
-			}
+			};
 
 			const title_text = scene.add.text(0, 24, 'Dummy Dungeons', {fontFamily: 'nightie', fontSize: '27px', fixedWidth: scene.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0);
 			const start_text = scene.add.text(0, 200, 'Start Game', {fontFamily: 'nightie', fontSize: '27px', fixedWidth: scene.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0);
@@ -571,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function()
 				title_text.destroy();
 				start_text.destroy();
 				game.scene.remove('title_scene');
-					game.scene.add('game_scene', game_scene);
+				game.scene.add('game_scene', game_scene);
 				// text_montage(scene);
 			});
 		},
@@ -624,6 +622,8 @@ document.addEventListener('DOMContentLoaded', function()
 			this.lights.enable().setAmbientColor(0x303840);
 
 			const level = this.cache.json.get(`level${current_level}`);
+			level.xoffset = (this.game.canvas.width - level.tiles[0].length*WIDTH_TILE)/2;
+			level.yoffset = (this.game.canvas.height - level.tiles.length*HEIGHT_TILE)/2;
 			current_level_name = level.name;
 
 			state.graph = makegraph(level, tilegroups, state);
@@ -713,20 +713,22 @@ document.addEventListener('DOMContentLoaded', function()
 				repeat: -1
 			});
 
-			// render lower level layer
+			// render level layers
 			for(let index_row = 0; index_row < level.tiles.length; ++index_row)
 			{
-				const row = level.tiles[index_row];
+				const row_lower = level.tiles[index_row];
+				const row_upper = level.tiles_top[index_row];
 
-				for(let index_col = 0; index_col < row.length; ++index_col)
+				for(let index_col = 0; index_col < row_lower.length; ++index_col)
 				{
-					const tile = row[index_col];
+					const tile_lower = row_lower[index_col];
+					const tile_upper = row_upper[index_col];
 
-					const x = XOFFSET_LEVEL + index_col*WIDTH_TILE;
-					const y = YOFFSET_LEVEL + index_row*HEIGHT_TILE;
+					const x = level.xoffset + index_col*WIDTH_TILE;
+					const y = level.yoffset + index_row*HEIGHT_TILE;
 
-					const sprite = this.add.sprite(x, y, 'atlas', tile).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
-					sprite.setPipeline('Light2D');
+					this.add.sprite(x, y, 'atlas', tile_lower).setDisplaySize(WIDTH_TILE, HEIGHT_TILE).setPipeline('Light2D');
+					this.add.sprite(x, y, 'atlas', tile_upper).setDisplaySize(WIDTH_TILE, HEIGHT_TILE).setPipeline('Light2D');
 				}
 			}
 
@@ -736,8 +738,8 @@ document.addEventListener('DOMContentLoaded', function()
 
 				if(object.key === 'sconce')
 				{
-					const x = XOFFSET_LEVEL + object.col*WIDTH_TILE;
-					const y = YOFFSET_LEVEL + object.row*HEIGHT_TILE;
+					const x = level.xoffset + object.col*WIDTH_TILE;
+					const y = level.yoffset + object.row*HEIGHT_TILE;
 
 					const sconce = {
 						light: this.lights.addLight(x, y + HEIGHT_TILE/2, LIGHT_RADIUS).setColor(0xffe8b0).setIntensity(object.lit ? LIGHT_INTENSITY : 0),
@@ -798,26 +800,7 @@ document.addEventListener('DOMContentLoaded', function()
 			state.dummy_thought.anims.play('thought_none');
 			state.dummy_thought.setDisplayOrigin(5, 31);
 
-			state.dummygroup.setXY(XOFFSET_LEVEL + node_spawn.index_col*WIDTH_TILE, YOFFSET_LEVEL + node_spawn.index_row*HEIGHT_TILE);
-
-
-			// render upper level layer
-			for(let index_row = 0; index_row < level.tiles_top.length; ++index_row)
-			{
-				const row = level.tiles_top[index_row];
-
-				for(let index_col = 0; index_col < row.length; ++index_col)
-				{
-					const tile = row[index_col];
-
-					const x = XOFFSET_LEVEL + index_col*WIDTH_TILE;
-					const y = YOFFSET_LEVEL + index_row*HEIGHT_TILE;
-
-					const sprite = this.add.sprite(x, y, 'atlas', tile).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
-
-					sprite.setPipeline('Light2D');
-				}
-			}
+			state.dummygroup.setXY(level.xoffset + node_spawn.index_col*WIDTH_TILE, level.yoffset + node_spawn.index_row*HEIGHT_TILE);
 
 			// UX Scene
 			state.ux_stored_light = {
@@ -846,7 +829,7 @@ document.addEventListener('DOMContentLoaded', function()
 			// music
 			const music = this.sound.add('main_track', {volume: .2});
 			music.setLoop(true);
-			const audio_sprite = this.add.sprite(0, 0, 'atlas', 'audio_play').setOrigin(0,0);
+			const audio_sprite = this.add.sprite(0, 0, 'atlas', 'audio_play').setOrigin(0, 0);
 			audio_sprite.setInteractive({
 				useHandCursor: true
 			});
@@ -888,7 +871,7 @@ document.addEventListener('DOMContentLoaded', function()
 						reset_level(scene);
 					}, 2000);
 				}
-				
+
 				return;
 			}
 			const action = state.action_current;
