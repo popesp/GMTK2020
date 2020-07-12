@@ -7,6 +7,15 @@ const YOFFSET_LEVEL = 48;
 const WIDTH_TILE = 16;
 const HEIGHT_TILE = 16;
 
+const THINK_SPEED = 0.05;
+
+const LIGHT_INTENSITY = 2;
+const DIM_RADIUS = 48;
+const LIT_RADIUS = 24;
+const LIGHT_RADIUS = 60;
+
+const WIN_RADIUS = 40;
+
 
 const tilegroups = {
 	null: 'walls',
@@ -18,6 +27,7 @@ const tilegroups = {
 	'floor6': 'below',
 	'floor7': 'below',
 	'floor8': 'below',
+	'feature_slime_base': 'below',
 	'floor_ladder': 'below',
 	'feature_lava_base1': 'below',
 	'wall_left': 'walls',
@@ -39,25 +49,32 @@ const tilegroups = {
 };
 
 
-function makegraph(level, tilegroups)
+function makegraph(level, tilegroups, state)
 {
 	const nodes = level.tiles.map(function(row, index_row)
 	{
 		return row.map(function(tile, index_col)
 		{
-			if(tile === 'floor_ladder')
-				return {
-					win: true,
+			if(tilegroups[tile] === 'below' || tile === null || tile === 'edge')
+			{
+				const node = {
 					index_row,
 					index_col,
+					x: XOFFSET_LEVEL + WIDTH_TILE*index_col,
+					y: YOFFSET_LEVEL + HEIGHT_TILE*index_row,
 					paths: []
 				};
-			else if(tilegroups[tile] === 'below')
-				return {
-					index_row,
-					index_col,
-					paths: []
-				};
+				if(tile === null || tile === 'edge')
+					node.hazard = true;
+				if(tile === 'floor_ladder')
+				{
+					node.win = true;
+					state.nodes_win.push(node);
+				}
+
+				return node;
+			}
+
 			return null;
 		});
 	});
@@ -90,6 +107,71 @@ function makegraph(level, tilegroups)
 	return nodes;
 }
 
+function lightgraph(graph, sconces)
+{
+	for(let index_row = 0; index_row < graph.length; ++index_row)
+	{
+		const row = graph[index_row];
+
+		for(let index_col = 0; index_col < row.length; ++index_col)
+		{
+			const node = row[index_col];
+			if(node === null)
+				continue;
+
+			node.lit = false;
+			node.dim = false;
+			for(let index_sconce = 0; index_sconce < sconces.length; ++index_sconce)
+			{
+				const sconce = sconces[index_sconce];
+				if(!sconce.lit)
+					continue;
+
+				const dx = sconce.x - node.x;
+				const dy = sconce.y - node.y;
+
+				if(dx*dx + dy*dy <= LIT_RADIUS*LIT_RADIUS)
+					node.lit = true;
+				if(dx*dx + dy*dy <= DIM_RADIUS*DIM_RADIUS)
+					node.dim = true;
+			}
+		}
+	}
+}
+
+function closestlit(start, graph)
+{
+	const visited = new Map();
+	visited.set(start);
+
+	return closestlit_recurse(start, graph, visited, []);
+}
+
+// start, graph, new Map()
+function closestlit_recurse(current, graph, visited, queue)
+{
+	if(current.lit && !current.hazard)
+		return current;
+
+	for(let index_path = 0; index_path < current.paths.length; ++index_path)
+	{
+		const node = current.paths[index_path];
+		if(node === null)
+			continue;
+
+		if(!visited.has(node))
+		{
+			visited.set(node);
+			queue.push(node);
+		}
+	}
+
+	while(queue.length > 0)
+		return closestlit_recurse(queue.shift(), graph, visited, queue);
+
+	return null;
+}
+
 function heuristic(start, goal)
 {
 	const dx = goal.index_col - start.index_col;
@@ -111,7 +193,7 @@ function reconstruct(from, current)
 	return path;
 }
 
-function findpath(start, goal)
+function findpath(start, goal, dummy_mood)
 {
 	const openset = [start];
 	const from = new Map();
@@ -121,7 +203,6 @@ function findpath(start, goal)
 
 	const score_f = new Map();
 	score_f.set(start, heuristic(start, goal));
-
 	while(openset.length > 0)
 	{
 		const current = openset.shift();
@@ -131,6 +212,8 @@ function findpath(start, goal)
 		for(let index_path = 0; index_path < current.paths.length; ++index_path)
 		{
 			const node_adj = current.paths[index_path];
+			if(dummy_mood !== 'scared' && node_adj.hazard)
+				continue;
 
 			const score_g_temp = score_g.get(current) + 1;
 			const score_g_adj = score_g.has(node_adj) ? score_g.get(node_adj) : Infinity;
@@ -157,91 +240,153 @@ function findpath(start, goal)
 }
 
 const mood_handler = {
-	bored: function(state)
+	calm: function(state)
 	{
-		// randomly decide to set a new destination when bored
-		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random() * 100) < 1)
+		// randomly decide to set a new destination when calm
+		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random()*240) < 1)
 		{
-			if(Math.floor(Math.random() * 100) < 20)
+			let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
+			let distance = 1;
+			while(distance < 5)
 			{
-				state.dummy_mood = 1;
-				state.actionqueue = [];
-				state.dummy_speed = 0.06;
+				end_node = end_node.paths[Math.floor(Math.random() * end_node.paths.length)];
+				distance++;
 			}
-			else
+			if(end_node !== state.node_current)
 			{
-				let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
-				let distance = 1;
-				while(distance < 5)
+				state.actionqueue.push({
+					type: 'think',
+					duration: Math.random()*4 + 2
+				},
 				{
-					end_node = end_node.paths[Math.floor(Math.random() * end_node.paths.length)];
-					distance++;
-				}
-				if(end_node !== state.node_current)
+					type: 'move',
+					node_destination: end_node,
+					index_path: 0,
+					progress_path: 0,
+					path: null
+				});
+			}
+		}
+
+		let moving_for_the_win = false;
+		for(let i = 0; i < state.actionqueue.length; ++i)
+		{
+			const action = state.actionqueue[i];
+			if(state.nodes_win.includes(action.node_destination))
+			{
+				moving_for_the_win = true;
+				break;
+			}
+		}
+		if(state.action_current !== null && state.nodes_win.includes(state.action_current.node_destination))
+			moving_for_the_win = true;
+		if(!moving_for_the_win)
+		{
+			for(let index_node_win = 0; index_node_win < state.nodes_win.length; ++index_node_win)
+			{
+				const node_win = state.nodes_win[index_node_win];
+
+				const dx = node_win.x - state.node_current.x;
+				const dy = node_win.y - state.node_current.y;
+
+				if(dx*dx + dy*dy <= WIN_RADIUS*WIN_RADIUS)
 				{
+					state.action_current = null;
 					state.actionqueue.push({
+						type: 'think',
+						duration: Math.random()*2 + 4
+					}, {
 						type: 'move',
-						node_destination: end_node,
+						node_destination: node_win,
 						index_path: 0,
 						progress_path: 0,
 						path: null
 					});
+					break;
 				}
 			}
 		}
+		else
+			state.dummy_thought.anims.play('thought_exit', true);
+
+		if(!state.node_current.dim)
+			changemood(state, 'scared');
 	},
 	scared: function(state)
 	{
-		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random() * 100) < 1)
+		if(state.node_current.lit)
+			changemood(state, 'calm');
+		else
 		{
-			if(Math.floor(Math.random() * 100) < 20)
+			const destination = closestlit(state.node_current, state.graph);
+			if(destination !== null && (state.action_current === null || (state.action_current.type === 'move' && destination !== state.action_current.node_destination)))
 			{
-				state.dummy_mood = 0;
-				state.actionqueue = [];
-				state.dummy_speed = 0.03;
+				state.action_current = null;
+				state.actionqueue.push({
+					type: 'move',
+					node_destination: destination,
+					index_path: 0,
+					progress_path: 0,
+					path: null
+				});
 			}
-			else
+		}
+
+		if(state.actionqueue.length === 0 && state.action_current === null && Math.floor(Math.random() * 60) < 1)
+		{
+			let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
+			let distance = 1;
+			while(distance < 9)
 			{
-				let end_node = state.node_current.paths[Math.floor(Math.random() * state.node_current.paths.length)];
-				let distance = 1;
-				while(distance < 9)
-				{
-					end_node = end_node.paths[Math.floor(Math.random() * end_node.paths.length)];
-					distance++;
-				}
-				if(end_node !== state.node_current)
-				{
-					state.actionqueue.push({
-						type: 'move',
-						node_destination: end_node,
-						index_path: 0,
-						progress_path: 0,
-						path: null
-					});
-				}
+				end_node = end_node.paths[Math.floor(Math.random() * end_node.paths.length)];
+				distance++;
+			}
+			if(end_node !== state.node_current)
+			{
+				state.actionqueue.push({
+					type: 'move',
+					node_destination: end_node,
+					index_path: 0,
+					progress_path: 0,
+					path: null
+				});
 			}
 		}
 	}
 };
 
+function changemood(state, mood)
+{
+	if(state.changing_moods)
+		return;
+
+	state.changing_moods = true;
+
+	state.action_current = null;
+	state.actionqueue = [];
+
+	state.actionqueue.push({
+		type: 'think',
+		duration: Math.random() + 1
+	},
+	{
+		type: 'mood',
+		mood: mood
+	});
+}
+
+function reset_level(scene)
+{
+	scene.restart();
+}
+
 document.addEventListener('DOMContentLoaded', function()
 {
 	const dom_container = document.getElementById('container');
 
-	const state = {
-		graph: null,
-		sconces: [],
-		// false: left, true: right
-		direction_dummy: 0,
-		node_current: null,
-		actionqueue: [],
-		action_current: null,
-		// normalized tile units per frame
-		dummy_speed: 0.03,
-		// 0 - bored , 1 - scared, 2 - brave
-		dummy_mood: 0,
-		win: false
-	};
+	let current_level = 0;
+	let current_level_name;
+	const state = {};
 
 	const game_scene = new Phaser.Class({
 		Extends: Phaser.Scene,
@@ -262,20 +407,33 @@ document.addEventListener('DOMContentLoaded', function()
 
 		create: function()
 		{
-			const staticgroups = {
-				walls: this.physics.add.staticGroup()
-			};
+			// init state
+			state.dummy = null;
+			state.graph = null;
+			state.sconces = [];
+			state.direction_dummy = 0;
+			state.node_current = null;
+			state.actionqueue = [];
+			state.action_current = null;
+			// normalized tile units per frame
+			state.dummy_speed = 0.03;
+			state.dummy_mood = 'calm';
+			state.changing_moods = false;
+			state.win = false;
+			state.lose = false;
+			state.nodes_win = [];
+
 
 			this.lights.enable().setAmbientColor(0x303840);
 
-			const level = this.cache.json.get('level1');
+			const level = this.cache.json.get(`level${current_level}`);
+			current_level_name = level.name;
 
-			state.graph = makegraph(level, tilegroups);
-			const node_spawn = state.graph[3][2];
+			state.graph = makegraph(level, tilegroups, state);
+			const node_spawn = state.graph[level.spawn[0]][level.spawn[1]];
 			state.node_current = node_spawn;
 
-
-			// animations
+			// character animations
 			this.anims.create({
 				key: 'dummy_idle',
 				frames: this.anims.generateFrameNames('atlas', {prefix: 'knight_idle', end: 4}),
@@ -301,6 +459,41 @@ document.addEventListener('DOMContentLoaded', function()
 				repeat: -1
 			});
 			this.anims.create({
+				key: 'dummy_fall',
+				frames: this.anims.generateFrameNames('atlas', {prefix: 'knight_fall', end: 5}),
+				frameRate: 8
+			});
+
+			// mood animations
+			this.anims.create({
+				key: 'thought_think',
+				frames: this.anims.generateFrameNames('atlas', {prefix: 'thought_think', end: 4}),
+				frameRate: 2,
+				repeat: -1
+			});
+			this.anims.create({
+				key: 'thought_fear',
+				frames: [{key: 'atlas', frame: 'thought_fear'}],
+				frameRate: 1
+			});
+			this.anims.create({
+				key: 'thought_surprise',
+				frames: [{key: 'atlas', frame: 'thought_surprise'}],
+				frameRate: 1
+			});
+			this.anims.create({
+				key: 'thought_exit',
+				frames: [{key: 'atlas', frame: 'thought_exit'}],
+				frameRate: 1
+			});
+			this.anims.create({
+				key: 'thought_none',
+				frames: [{key: 'atlas', frame: 'thought_none'}],
+				frameRate: 1
+			});
+
+			// sconce animations
+			this.anims.create({
 				key: 'sconce_unlit',
 				frames: [{key: 'atlas', frame: 'sconce_unlit'}],
 				frameRate: 1
@@ -308,6 +501,17 @@ document.addEventListener('DOMContentLoaded', function()
 			this.anims.create({
 				key: 'sconce_lit',
 				frames: this.anims.generateFrameNames('atlas', {prefix: 'sconce_lit', end: 2}),
+				frameRate: 3,
+				repeat: -1
+			});
+			this.anims.create({
+				key: 'sconce_unlit_outline',
+				frames: [{key: 'atlas', frame: 'sconce_unlit_outline'}],
+				frameRate: 1
+			});
+			this.anims.create({
+				key: 'sconce_lit_outline',
+				frames: this.anims.generateFrameNames('atlas', {prefix: 'sconce_lit_outline', end: 2}),
 				frameRate: 3,
 				repeat: -1
 			});
@@ -321,15 +525,10 @@ document.addEventListener('DOMContentLoaded', function()
 				{
 					const tile = row[index_col];
 
-					const tilegroup = tilegroups[tile];
-
 					const x = XOFFSET_LEVEL + index_col*WIDTH_TILE;
 					const y = YOFFSET_LEVEL + index_row*HEIGHT_TILE;
 
 					const sprite = this.add.sprite(x, y, 'atlas', tile).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
-					if(staticgroups[tilegroup])
-						staticgroups[tilegroup].add(sprite);
-
 					sprite.setPipeline('Light2D');
 				}
 			}
@@ -343,54 +542,66 @@ document.addEventListener('DOMContentLoaded', function()
 					const x = XOFFSET_LEVEL + object.col*WIDTH_TILE;
 					const y = YOFFSET_LEVEL + object.row*HEIGHT_TILE;
 
-					const sprite = this.add.sprite(x, y, 'atlas', 'sconce_unlit');
-
-					sprite.anims.play(object.lit ? 'sconce_lit' : 'sconce_unlit');
-
-					sprite.setPipeline('Light2D');
-					const sconce = this.lights.addLight(x, y, 80).setColor(0xffe8b0);
-					sconce.setIntensity(object.lit ? 2 : 0);
+					const sconce = {
+						light: this.lights.addLight(x, y + HEIGHT_TILE/2, LIGHT_RADIUS).setColor(0xffe8b0).setIntensity(object.lit ? LIGHT_INTENSITY : 0),
+						sprite: this.add.sprite(x, y, 'atlas', 'sconce_unlit').setPipeline('Light2D').anims.play(object.lit ? 'sconce_lit' : 'sconce_unlit'),
+						lit: object.lit,
+						x: x,
+						y: y + HEIGHT_TILE
+					};
 					state.sconces.push(sconce);
 
-					sprite.setInteractive({
+					sconce.sprite.setInteractive({
 						useHandCursor: true
 					});
-					sprite.on('pointerdown', function()
+					sconce.sprite.on('pointerup', function()
 					{
-						this.setTint(0xff0000);
-					});
-					sprite.on('pointerup', function()
-					{
-						if(sconce.intensity === 0 && state.ux_stored_light.available > 0)
+						if(!sconce.lit && state.ux_stored_light.available > 0)
 						{
-							sconce.setIntensity(2);
-							this.anims.remove('sconce_unlit');
-							this.anims.play('sconce_lit');
+							sconce.lit = true;
+							sconce.light.setIntensity(LIGHT_INTENSITY);
+							sconce.sprite.anims.play('sconce_lit_outline');
 
 							state.ux_stored_light.sprites[--state.ux_stored_light.available].anims.remove('sconce_lit');
 							state.ux_stored_light.sprites[state.ux_stored_light.available].anims.play('sconce_unlit');
 						}
-						else if(sconce.intensity !== 0 && state.ux_stored_light.available < 3)
+						else if(sconce.lit && state.ux_stored_light.available < 3)
 						{
-							sconce.setIntensity(0);
-							this.anims.remove('sconce_lit');
-							this.anims.play('sconce_unlit');
+							sconce.lit = false;
+							sconce.light.setIntensity(0);
+							sconce.sprite.anims.play('sconce_unlit_outline');
 
 							state.ux_stored_light.sprites[state.ux_stored_light.available].anims.play('sconce_lit');
 							state.ux_stored_light.sprites[state.ux_stored_light.available++].anims.remove('sconce_unlit');
 						}
+
+						lightgraph(state.graph, state.sconces);
 					});
-					sprite.on('pointerout', function()
+					sconce.sprite.on('pointermove', function()
 					{
-						this.clearTint();
+						sconce.sprite.anims.play(sconce.lit ? 'sconce_lit_outline' : 'sconce_unlit_outline');
+					});
+					sconce.sprite.on('pointerout', function()
+					{
+						sconce.sprite.anims.play(sconce.lit ? 'sconce_lit' : 'sconce_unlit');
 					});
 				}
 			}
 
+			lightgraph(state.graph, state.sconces);
+
+			state.dummygroup = this.add.group();
+
 			// initialize character
-			state.dummy = this.physics.add.sprite(XOFFSET_LEVEL + node_spawn.index_col*WIDTH_TILE, YOFFSET_LEVEL + node_spawn.index_row*HEIGHT_TILE, 'atlas').setOrigin(0.5, 1);
+			state.dummy = state.dummygroup.create(0, 0, 'atlas').setOrigin(0.5, 1);
 			state.dummy.setPipeline('Light2D');
-			state.dummy.body.setSize(12, 6).setOffset(2, 28);
+			// dummy.body.setSize(12, 6).setOffset(2, 28);
+
+			state.dummy_thought = state.dummygroup.create(0, 0, 'atlas');
+			state.dummy_thought.anims.play('thought_none');
+			state.dummy_thought.setDisplayOrigin(5, 31);
+
+			state.dummygroup.setXY(XOFFSET_LEVEL + node_spawn.index_col*WIDTH_TILE, YOFFSET_LEVEL + node_spawn.index_row*HEIGHT_TILE);
 
 
 			// render upper level layer
@@ -402,37 +613,68 @@ document.addEventListener('DOMContentLoaded', function()
 				{
 					const tile = row[index_col];
 
-					const tilegroup = tilegroups[tile];
-
 					const x = XOFFSET_LEVEL + index_col*WIDTH_TILE;
 					const y = YOFFSET_LEVEL + index_row*HEIGHT_TILE;
 
 					const sprite = this.add.sprite(x, y, 'atlas', tile).setDisplaySize(WIDTH_TILE, HEIGHT_TILE);
-					if(staticgroups[tilegroup])
-						staticgroups[tilegroup].add(sprite);
 
 					sprite.setPipeline('Light2D');
 				}
 			}
-			// 9 - 2
-			state.actionqueue.push({
-				type: 'move',
-				node_destination: state.graph[2][9],
-				index_path: 0,
-				progress_path: 0,
-				path: null
+
+			// UX Scene
+			state.ux_stored_light = {
+				sprites: [
+					this.add.sprite(164, 10, 'atlas', 'sconce_unlit'),
+					this.add.sprite(185, 10, 'atlas', 'sconce_unlit'),
+					this.add.sprite(206, 10, 'atlas', 'sconce_unlit')
+				],
+				available: 0
+			};
+
+			const level_text = this.add.text(this.game.canvas.width/2, this.game.canvas.height/2, current_level_name, {fontFamily: 'nightie', fontSize: '27px', backgroundColor: 0x303030, fixedWidth: this.game.canvas.width, fixedHeight: 32, align: 'center'});
+			level_text.setOrigin(0.5, 0.5);
+			level_text.font = 'nightie';
+
+			this.tweens.addCounter({
+				from: 1,
+				to: 0,
+				duration: 2000,
+				onUpdate: function(tween)
+				{
+					level_text.setAlpha(tween.getValue());
+				}
 			});
-			this.physics.add.collider(state.dummy, staticgroups.walls);
 		},
 
 		update: function()
 		{
+			const scene = this.scene;
 			if(state.node_current.win)
 			{
 				if(!state.win)
 				{
 					state.win = true;
-					this.add.text(120, 30, 'You Win POGGERS', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
+					this.add.text(0, 24, 'Sir Daft is Victorious', {fontFamily: 'nightie', fontSize: '27px', fixedWidth: this.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0);
+					setTimeout(function()
+					{
+						current_level++;
+						reset_level(scene);
+					}, 2000);
+				}
+				return;
+			}
+			if(state.node_current.hazard)
+			{
+				if(!state.lose)
+				{
+					state.lose = true;
+					state.dummy.anims.play('dummy_fall');
+					this.add.text(0, 24, 'Sir Daft has Perished', {fontFamily: 'nightie', fontSize: '27px', fixedWidth: this.game.canvas.width, fixedHeight: 32, align: 'center'}).setOrigin(0, 0);
+					setTimeout(function()
+					{
+						reset_level(scene);
+					}, 2000);
 				}
 				return;
 			}
@@ -441,10 +683,22 @@ document.addEventListener('DOMContentLoaded', function()
 			// if idle, perform next action when applicable
 			if(action !== null)
 			{
-				if(action.type === 'move')
+				if(action.type === 'think')
+				{
+					if(state.dummy_mood === 'calm')
+						state.dummy_thought.anims.play('thought_think', true);
+
+					action.duration -= THINK_SPEED;
+					if(action.duration <= 0)
+					{
+						state.action_current = null;
+						state.dummy_thought.anims.play('thought_none', true);
+					}
+				}
+				else if(action.type === 'move')
 				{
 					if(action.path === null)
-						action.path = findpath(state.node_current, action.node_destination);
+						action.path = findpath(state.node_current, action.node_destination, state.dummy_mood);
 
 					if(action.path.length > 1)
 					{
@@ -456,7 +710,7 @@ document.addEventListener('DOMContentLoaded', function()
 							{
 								const node_end = action.path[action.index_path];
 
-								state.dummy.setPosition(XOFFSET_LEVEL + WIDTH_TILE*node_end.index_col, YOFFSET_LEVEL + HEIGHT_TILE*node_end.index_row);
+								state.dummygroup.setXY(node_end.x, node_end.y);
 								state.node_current = node_end;
 								state.action_current = null;
 							}
@@ -472,73 +726,46 @@ document.addEventListener('DOMContentLoaded', function()
 							if(node_from.index_col !== node_to.index_col)
 								state.direction_dummy = node_to.index_col < node_from.index_col;
 
-							state.node_current = action.progress_path < 0.5 ? node_from : node_to;
+							state.node_current = node_from;
 
 							const x = Math.floor(XOFFSET_LEVEL + WIDTH_TILE*(node_from.index_col*(1 - action.progress_path) + node_to.index_col*action.progress_path));
 							const y = Math.floor(YOFFSET_LEVEL + HEIGHT_TILE*(node_from.index_row*(1 - action.progress_path) + node_to.index_row*action.progress_path));
 
-							state.dummy.setPosition(x, y);
+							state.dummygroup.setXY(x, y);
 						}
 
-						state.dummy.anims.play(state.dummy_mood === 0 ? 'dummy_run' : 'dummy_run_scared', true);
+						state.dummy.anims.play(state.dummy_mood === 'scared' ? 'dummy_run_scared' : 'dummy_run', true);
 					}
 				}
+				else if(action.type === 'mood')
+				{
+					state.dummy_mood = action.mood;
+					state.action_current = null;
+					state.dummy_speed = action.mood === 'scared' ? 0.06 : 0.03;
+
+					state.changing_moods = false;
+
+					if(action.mood === 'scared')
+						state.dummy_thought.anims.play('thought_surprise', true);
+					else if(action.mood === 'calm')
+						state.dummy_thought.anims.play('thought_none', true);
+				}
 			}
-			else
+
+			if(action === null)
 			{
-				state.dummy.anims.play(state.dummy_mood === 0 ? 'dummy_idle' : 'dummy_idle_scared', true);
+				state.dummy.anims.play(state.dummy_mood === 'scared' ? 'dummy_idle_scared' : 'dummy_idle', true);
 
 				if(state.actionqueue.length > 0)
 					state.action_current = state.actionqueue.shift();
 			}
 
 			state.dummy.setFlipX(state.direction_dummy);
-			if(state.dummy_mood === 0)
-				mood_handler.bored(state);
-			else if(state.dummy_mood === 1)
+
+			if(state.dummy_mood === 'calm')
+				mood_handler.calm(state);
+			else if(state.dummy_mood === 'scared')
 				mood_handler.scared(state);
-		}
-	});
-
-	const ux_scene = new Phaser.Class({
-		Extends: Phaser.Scene,
-		initialize: function ux_scene()
-		{
-			Phaser.Scene.call(this, {key: 'ux_scene', active: true});
-		},
-		preload: function()
-		{
-			this.load.atlas('atlas_ux', 'assets/ux.png', 'assets/ux.json');
-			this.load.atlas('atlas', ['assets/tileset.png', 'assets/normal.png'], 'assets/tileset.json');
-		},
-		create: function()
-		{
-			// render overloard controls
-			this.add.sprite(0, 0, 'atlas_ux', 'ux_heart_full').setOrigin(0, 0);
-			this.add.sprite(36, 0, 'atlas_ux', 'ux_heart_half').setOrigin(0, 0);
-			this.add.sprite(72, 0, 'atlas_ux', 'ux_heart_empty').setOrigin(0, 0);
-
-			state.ux_stored_light = {
-				sprites: [
-					this.add.sprite(184, 10, 'atlas', 'sconce_unlit'),
-					this.add.sprite(205, 10, 'atlas', 'sconce_unlit'),
-					this.add.sprite(226, 10, 'atlas', 'sconce_unlit')
-				],
-				available: 0
-			};
-
-			state.dummy_mood_text = this.add.text(125, 0, '', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
-			this.add.text(250, 0, 'Upper Dungeon - 1', {fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif'});
-		},
-		update: function()
-		{
-			let mood_text;
-			if(state.dummy_mood === 0)
-				mood_text = 'Bored';
-			else if(state.dummy_mood === 1)
-				mood_text = 'Scared';
-
-			state.dummy_mood_text.setText(mood_text);
 		}
 	});
 
@@ -557,7 +784,7 @@ document.addEventListener('DOMContentLoaded', function()
 				fps: 30
 			}
 		},
-		scene: [game_scene, ux_scene]
+		scene: game_scene
 	});
 
 	function resize()
@@ -568,7 +795,7 @@ document.addEventListener('DOMContentLoaded', function()
 		const r = HEIGHT_CANVAS/WIDTH_CANVAS;
 
 		if(w*r > window.innerHeight)
-			w = Math.min(w, Math.ceil(h/r));
+			w = Math.min(w, Math.ceil(h/r), 800);
 		h = Math.floor(w*r);
 
 		dom_container.style.width = game.canvas.style.width = `${w}px`;

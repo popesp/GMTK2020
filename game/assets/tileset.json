@@ -269,28 +269,52 @@
 			"frame": {"x": 96, "y": 144, "w": 16, "h": 16}
 		},
 		{
-			"filename": "doors_all",
-			"frame": {"x": 16, "y": 221, "w": 64, "h": 35}
+			"filename": "doors_frame_left_top",
+			"frame": {"x": 16, "y": 224, "w": 16, "h": 16}
 		},
 		{
-			"filename": "doors_frame_left",
-			"frame": {"x": 16, "y": 224, "w": 16, "h": 32}
+			"filename": "doors_frame_top_left",
+			"frame": {"x": 32, "y": 208, "w": 16, "h": 16}
 		},
 		{
-			"filename": "doors_frame_top",
-			"frame": {"x": 32, "y": 221, "w": 32, "h": 3}
+			"filename": "doors_frame_top_right",
+			"frame": {"x": 48, "y": 208, "w": 16, "h": 16}
 		},
 		{
-			"filename": "doors_frame_right",
-			"frame": {"x": 63, "y": 224, "w": 16, "h": 32}
+			"filename": "doors_frame_right_top",
+			"frame": {"x": 64, "y": 224, "w": 16, "h": 16}
 		},
 		{
-			"filename": "doors_leaf_closed",
-			"frame": {"x": 32, "y": 224, "w": 32, "h": 32}
+			"filename": "doors_leaf_closed1",
+			"frame": {"x": 32, "y": 224, "w": 16, "h": 16}
 		},
 		{
-			"filename": "doors_leaf_open",
-			"frame": {"x": 80, "y": 224, "w": 32, "h": 32}
+			"filename": "doors_leaf_closed2",
+			"frame": {"x": 48, "y": 224, "w": 16, "h": 16}
+		},
+		{
+			"filename": "doors_leaf_closed3",
+			"frame": {"x": 32, "y": 240, "w": 16, "h": 16}
+		},
+		{
+			"filename": "doors_leaf_closed4",
+			"frame": {"x": 48, "y": 240, "w": 16, "h": 16}
+		},
+		{
+			"filename": "doors_leaf_open1",
+			"frame": {"x": 80, "y": 224, "w": 16, "h": 16}
+		},
+		{
+			"filename": "doors_leaf_open2",
+			"frame": {"x": 96, "y": 224, "w": 16, "h": 16}
+		},
+		{
+			"filename": "doors_leaf_open3",
+			"frame": {"x": 80, "y": 240, "w": 16, "h": 16}
+		},
+		{
+			"filename": "doors_leaf_open4",
+			"frame": {"x": 96, "y": 240, "w": 16, "h": 16}
 		},
 		{
 			"filename": "chest_empty_open_anim",
@@ -377,6 +401,26 @@
 			"frame": {"x": 240, "y": 64, "w": 16, "h": 32}
 		},
 		{
+			"filename": "knight_fall1",
+			"frame": {"x": 128, "y": 128, "w": 16, "h": 32}
+		},
+		{
+			"filename": "knight_fall2",
+			"frame": {"x": 144, "y": 128, "w": 16, "h": 32}
+		},
+		{
+			"filename": "knight_fall3",
+			"frame": {"x": 160, "y": 128, "w": 16, "h": 32}
+		},
+		{
+			"filename": "knight_fall4",
+			"frame": {"x": 176, "y": 128, "w": 16, "h": 32}
+		},
+		{
+			"filename": "knight_fall5",
+			"frame": {"x": 192, "y": 128, "w": 16, "h": 32}
+		},
+		{
 			"filename": "sconce_unlit",
 			"frame": {"x": 304, "y": 176, "w": 16, "h": 32}
 		},
@@ -387,6 +431,50 @@
 		{
 			"filename": "sconce_lit2",
 			"frame": {"x": 336, "y": 176, "w": 16, "h": 32}
+		},
+		{
+			"filename": "sconce_unlit_outline",
+			"frame": {"x": 304, "y": 208, "w": 16, "h": 32}
+		},
+		{
+			"filename": "sconce_lit_outline1",
+			"frame": {"x": 320, "y": 208, "w": 16, "h": 32}
+		},
+		{
+			"filename": "sconce_lit_outline2",
+			"frame": {"x": 336, "y": 208, "w": 16, "h": 32}
+		},
+		{
+			"filename": "thought_think1",
+			"frame": {"x": 128, "y": 160, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_think2",
+			"frame": {"x": 144, "y": 160, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_think3",
+			"frame": {"x": 160, "y": 160, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_think4",
+			"frame": {"x": 176, "y": 160, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_fear",
+			"frame": {"x": 192, "y": 160, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_surprise",
+			"frame": {"x": 208, "y": 160, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_exit",
+			"frame": {"x": 224, "y": 160, "w": 16, "h": 16}
+		},
+		{
+			"filename": "thought_none",
+			"frame": {"x": 240, "y": 160, "w": 16, "h": 16}
 		}
 	]
 }
